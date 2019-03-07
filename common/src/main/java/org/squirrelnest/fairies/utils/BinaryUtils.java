@@ -37,4 +37,18 @@ public class BinaryUtils {
         char binaryChar = getBinaryCharSequence(aByte)[index];
         return Integer.parseInt(binaryChar + "");
     }
+
+    public static int findMaxSamePrefixLength(byte a, byte b) {
+        int length = 8;
+        int aValue = a, bValue = b;
+        while(length > 0) {
+            if (aValue == bValue) {
+                return length;
+            }
+            aValue = aValue >> 1;
+            bValue = bValue >> 1;
+            length--;
+        }
+        return 0;
+    }
 }

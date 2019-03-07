@@ -5,31 +5,32 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 import org.squirrelnest.fairies.storage.datasource.interfaces.KVDataSource;
 import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Inoria on 2019/3/6.
  *
  * 用于存储内存中的数据到文件中，节点程序如果停止运行，重启后可以获得部分数据
  */
-@Service
-public class LocalStorageService implements KVDataSource {
+@Repository
+public class LocalStorageDAO implements KVDataSource {
     @Value("${fairies.localstorage.basepath}")
     private String basePath;
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
+    private static final String DEFAULT_ENCODING = "UTF-8";
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageDAO.class);
 
     @Override
     public <T> void save(String partName, String key, T value) throws Exception {
         LocalStorageTypeEnum typeEnum = LocalStorageTypeEnum.findType(partName);
         if (typeEnum.equals(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE)) {
-            String errorMessage = "Target part name is not supported in local storage service";
-            LOGGER.error(errorMessage);
-            throw new UnsupportedOperationException(errorMessage);
+            saveKVPair(key, value);
         }
         backup(typeEnum, value);
     }
@@ -38,9 +39,7 @@ public class LocalStorageService implements KVDataSource {
     public <T> T load(String partName, String key, Class<T> valueClass) throws Exception {
         LocalStorageTypeEnum typeEnum = LocalStorageTypeEnum.findType(partName);
         if (typeEnum.equals(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE)) {
-            String errorMessage = "Target part name is not supported in local storage service";
-            LOGGER.error(errorMessage);
-            throw new UnsupportedOperationException(errorMessage);
+            return loadKVPair(key, valueClass);
         }
         return loadBackup(typeEnum, valueClass);
     }
@@ -50,8 +49,7 @@ public class LocalStorageService implements KVDataSource {
         return new File(fileFullPath);
     }
 
-    private <T> void backup(LocalStorageTypeEnum typeEnum, T value) throws Exception {
-        File file = getBackupFile(typeEnum);
+    private void createNewFileIfNotExists(LocalStorageTypeEnum typeEnum, File file) throws Exception {
         if (!file.exists()) {
             boolean success = file.createNewFile();
             if (!success) {
@@ -60,8 +58,13 @@ public class LocalStorageService implements KVDataSource {
                 throw new Exception(errorMessage);
             }
         }
+    }
 
-        FileUtils.writeStringToFile(file, JSON.toJSONString(value), "UTF-8");
+    private <T> void backup(LocalStorageTypeEnum typeEnum, T value) throws Exception {
+        File file = getBackupFile(typeEnum);
+        createNewFileIfNotExists(typeEnum, file);
+
+        FileUtils.writeStringToFile(file, JSON.toJSONString(value), DEFAULT_ENCODING);
     }
 
     private <T> T loadBackup(LocalStorageTypeEnum typeEnum, Class<T> valueClass) throws Exception {
@@ -71,7 +74,38 @@ public class LocalStorageService implements KVDataSource {
             LOGGER.error(errorMessage);
             return null;
         }
-        String fileContent = FileUtils.readFileToString(file, "UTF-8");
+        String fileContent = FileUtils.readFileToString(file, DEFAULT_ENCODING);
         return JSON.parseObject(fileContent, valueClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void saveKVPair(String key, T value) throws Exception {
+        File file = getBackupFile(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE);
+        createNewFileIfNotExists(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE, file);
+        Map<String, Object> storeKvMap;
+        try {
+            String fileString = FileUtils.readFileToString(file, DEFAULT_ENCODING);
+            storeKvMap = JSON.parseObject(fileString, HashMap.class);
+        } catch (Exception e) {
+            storeKvMap = new HashMap<>(16);
+        }
+        storeKvMap.put(key, value);
+        FileUtils.writeStringToFile(file, JSON.toJSONString(storeKvMap), DEFAULT_ENCODING);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T loadKVPair(String key, Class<T> valueClass) throws Exception {
+        File file = getBackupFile(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE);
+        if (!file.exists()) {
+            return null;
+        }
+        Map<String, Object> storeKvMap;
+        try {
+            String fileString = FileUtils.readFileToString(file, DEFAULT_ENCODING);
+            storeKvMap = JSON.parseObject(fileString, HashMap.class);
+        } catch (Exception e) {
+            return null;
+    }
+        return JSON.parseObject(storeKvMap.get(key).toString(), valueClass);
     }
 }
