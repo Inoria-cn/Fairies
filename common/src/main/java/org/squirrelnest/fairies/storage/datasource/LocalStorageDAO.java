@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-import org.squirrelnest.fairies.storage.datasource.interfaces.KVDataSource;
+import org.squirrelnest.fairies.storage.datasource.interfaces.DataSource;
 import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
 
 import java.io.File;
@@ -19,7 +19,7 @@ import java.util.Map;
  * 用于存储内存中的数据到文件中，节点程序如果停止运行，重启后可以获得部分数据
  */
 @Repository
-public class LocalStorageDAO implements KVDataSource {
+public class LocalStorageDAO implements DataSource {
     @Value("${fairies.localstorage.basepath}")
     private String basePath;
 

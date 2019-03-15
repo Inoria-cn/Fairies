@@ -1,11 +1,13 @@
 package org.squirrelnest.fairies.domain;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.squirrelnest.fairies.utils.BinaryUtils;
 
 import java.util.Arrays;
 
 /**
+ * DHT系统的基础模型：160hash值作为id
  * Created by Inoria on 2019/3/5.
  */
 public class HashCode160 {
@@ -81,5 +83,21 @@ public class HashCode160 {
     @Override
     public int hashCode() {
         return Arrays.hashCode(getBits());
+    }
+
+    /**
+     * 获取的是按byte进行转换的字符串，用于序列化传输
+     * @return 序列化后的字符串
+     */
+    @Override
+    public String toString() {
+        return new String(getBits());
+    }
+
+    public static HashCode160 parseString(String raw) {
+        if (StringUtils.isEmpty(raw)) {
+            return null;
+        }
+        return new HashCode160(raw.getBytes());
     }
 }

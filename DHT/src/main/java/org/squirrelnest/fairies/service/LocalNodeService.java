@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.squirrelnest.fairies.domain.HashCode160;
-import org.squirrelnest.fairies.storage.datasource.interfaces.KVDataSource;
+import org.squirrelnest.fairies.storage.datasource.interfaces.DataSource;
 import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
 import org.squirrelnest.fairies.utils.HashUtils;
 
@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 public class LocalNodeService {
 
     @Resource(name = "localStorageDAO")
-    private KVDataSource localStore;
+    private DataSource localStore;
 
     private static final String NODE_ID_KEY = "localNodeId";
 

@@ -1,4 +1,4 @@
-package org.squirrelnest.fairies.domain.router;
+package org.squirrelnest.fairies.router;
 
 import org.squirrelnest.fairies.domain.HashCode160;
 
@@ -11,7 +11,6 @@ public class Record implements Comparable<Record> {
     private String nodePort;
     private Long createTimestamp;
     private Long contactTimestamp;
-    private Integer secondToLive;
 
     public HashCode160 getNodeId() {
         return nodeId;
@@ -60,10 +59,5 @@ public class Record implements Comparable<Record> {
 
     public Integer distanceOf(HashCode160 target) {
         return this.nodeId.calculateDistance(target);
-    }
-
-    public Boolean shouldDie() {
-        Long currentTimestamp = System.currentTimeMillis();
-        return currentTimestamp > contactTimestamp + secondToLive;
     }
 }

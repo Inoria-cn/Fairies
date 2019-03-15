@@ -1,4 +1,4 @@
-package org.squirrelnest.fairies.domain.router;
+package org.squirrelnest.fairies.router;
 
 import org.squirrelnest.fairies.domain.HashCode160;
 
@@ -26,6 +26,8 @@ public class Bucket {
     private final List<Record> records;
 
     private final List<Record> copies;
+
+    private Long modifiedTimeMs;
 
     /**
      * 为了提高性能，使用

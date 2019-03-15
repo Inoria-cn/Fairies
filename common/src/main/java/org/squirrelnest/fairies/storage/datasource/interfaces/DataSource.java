@@ -1,9 +1,10 @@
 package org.squirrelnest.fairies.storage.datasource.interfaces;
 
 /**
+ * 系统数据存储的通用接口，简易版实现可以使用本地文件，高级版实现可以使用数据库等等
  * Created by Inoria on 2019/3/6.
  */
-public interface KVDataSource {
+public interface DataSource {
 
     /**
      * 数据源标准存储方法
