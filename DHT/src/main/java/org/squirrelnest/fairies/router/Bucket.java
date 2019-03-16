@@ -41,6 +41,7 @@ public class Bucket {
         return records.size() == 0;
     }
 
+
     public List<Record> getNearNodes(HashCode160 target, Integer maxSize) {
         if (isEmpty()) {
             return new ArrayList<>(2);

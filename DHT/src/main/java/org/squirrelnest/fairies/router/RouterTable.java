@@ -19,7 +19,7 @@ import java.util.List;
 public class RouterTable {
 
     @Value("${fairies.dht.k}")
-    private int bucketSize;
+    private int kSize;
 
     @Value("${fairies.dht.kBucketCopy}")
     private int copySize;
@@ -42,26 +42,31 @@ public class RouterTable {
     private void init() {
         this.localId = localNodeService.getLocalNodeId();
         for(int i = 0; i < 160; i++) {
-            kBuckets.add(new Bucket(this.localId, bucketSize, copySize, maxNoResponse));
+            kBuckets.add(new Bucket(this.localId, kSize, copySize, maxNoResponse));
         }
     }
 
-    public List<Record> getNearNodes(HashCode160 target, Integer limit) {
+    /**
+     *
+     * @param target 目标节点id
+     * @return 路由表中获取到的k个最近节点记录，越靠前查询优先级越高
+     */
+    public List<Record> getNearNodes(HashCode160 target) {
         int index = findBucketIndex(target);
         if (index < 0) {
             throw new GetNodeException("Target node is same as local node!");
         }
         int foundNodeCount = 0;
-        List<Record> result = new ArrayList<>(limit);
+        List<Record> result = new ArrayList<>(kSize);
         for(int i = index; i >= 0; i--) {
             Bucket bucket = kBuckets.get(i);
             if(bucket.isEmpty()) {
                 continue;
             }
-            if(foundNodeCount >= limit) {
+            if(foundNodeCount >= kSize) {
                 break;
             }
-            int needNodeCount = limit - foundNodeCount;
+            int needNodeCount = kSize - foundNodeCount;
             List<Record> nodesGot = bucket.getNearNodes(target, needNodeCount);
             result.addAll(nodesGot);
             foundNodeCount += nodesGot.size();
@@ -81,6 +86,9 @@ public class RouterTable {
      */
     public void requestNode(HashCode160 id) {
         int index = findBucketIndex(id);
+        if (index < 0) {
+            return;
+        }
         kBuckets.get(index).requestNode(id);
     }
 
@@ -90,10 +98,23 @@ public class RouterTable {
      */
     public void knowNode(HashCode160 id, String ip, String port, boolean directReceive) {
         int index = findBucketIndex(id);
+        if (index < 0) {
+            return;
+        }
         if (directReceive) {
             kBuckets.get(index).connectNode(id, ip, port);
         } else {
             kBuckets.get(index).knowNode(id, ip, port);
+        }
+    }
+
+    public void knowNode(Record record, boolean directReceive) {
+        knowNode(record.getNodeId(), record.getNodeIp(), record.getNodePort(), directReceive);
+    }
+
+    public void knowNodes(List<Record> records, boolean directReceive) {
+        for (Record record : records) {
+            knowNode(record.getNodeId(), record.getNodeIp(), record.getNodePort(), directReceive);
         }
     }
 }

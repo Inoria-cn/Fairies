@@ -89,4 +89,24 @@ public class Record implements Comparable<Record> {
     public Integer getNoResponseCount() {
         return noResponseCount;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Record)) return false;
+
+        Record record = (Record) o;
+
+        if (!getNodeId().equals(record.getNodeId())) return false;
+        if (!getNodeIp().equals(record.getNodeIp())) return false;
+        return getNodePort().equals(record.getNodePort());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getNodeId().hashCode();
+        result = 31 * result + getNodeIp().hashCode();
+        result = 31 * result + getNodePort().hashCode();
+        return result;
+    }
 }

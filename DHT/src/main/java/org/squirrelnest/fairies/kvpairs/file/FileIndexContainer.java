@@ -56,7 +56,11 @@ public class FileIndexContainer {
     }
 
     public FileValue get(HashCode160 targetKey) {
-        return fileData.get(targetKey);
+        FileValue result = fileData.get(targetKey);
+        if (result != null && TimeUtils.msAgo(0, result.getExpireTimestamp())) {
+            return null;
+        }
+        return result;
     }
 
     public void put(HashCode160 key, FileValue value) {
