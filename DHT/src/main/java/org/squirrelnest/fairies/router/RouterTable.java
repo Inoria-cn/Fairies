@@ -24,6 +24,9 @@ public class RouterTable {
     @Value("${fairies.dht.kBucketCopy}")
     private int copySize;
 
+    @Value("${fairies.dht.maxNoResponse}")
+    private int maxNoResponse;
+
     @Resource
     private LocalNodeService localNodeService;
 
@@ -39,15 +42,15 @@ public class RouterTable {
     private void init() {
         this.localId = localNodeService.getLocalNodeId();
         for(int i = 0; i < 160; i++) {
-            kBuckets.add(new Bucket(this.localId, bucketSize, copySize));
+            kBuckets.add(new Bucket(this.localId, bucketSize, copySize, maxNoResponse));
         }
     }
 
     public List<Record> getNearNodes(HashCode160 target, Integer limit) {
-        if (localId.equals(target)) {
+        int index = findBucketIndex(target);
+        if (index < 0) {
             throw new GetNodeException("Target node is same as local node!");
         }
-        int index = 159 - localId.calculateDistance(target);
         int foundNodeCount = 0;
         List<Record> result = new ArrayList<>(limit);
         for(int i = index; i >= 0; i--) {
@@ -64,5 +67,33 @@ public class RouterTable {
             foundNodeCount += nodesGot.size();
         }
         return result;
+    }
+
+    private int findBucketIndex(HashCode160 id) {
+        if (localId.equals(id)) {
+            return -1;
+        }
+        return 159 - localId.calculateDistance(id);
+    }
+
+    /**
+     * 向一个节点发送了请求后需要调用此方法
+     */
+    public void requestNode(HashCode160 id) {
+        int index = findBucketIndex(id);
+        kBuckets.get(index).requestNode(id);
+    }
+
+    /**
+     * 与一个节点发生交互后调用（dht通信中知道了此节点或者收到了该节点发来的消息）
+     * @param directReceive 是不是收到了这个节点直接发来的请求或者响应消息？
+     */
+    public void knowNode(HashCode160 id, String ip, String port, boolean directReceive) {
+        int index = findBucketIndex(id);
+        if (directReceive) {
+            kBuckets.get(index).connectNode(id, ip, port);
+        } else {
+            kBuckets.get(index).knowNode(id, ip, port);
+        }
     }
 }

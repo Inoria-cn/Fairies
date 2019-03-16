@@ -9,8 +9,26 @@ public class Record implements Comparable<Record> {
     private HashCode160 nodeId;
     private String nodeIp;
     private String nodePort;
-    private Long createTimestamp;
-    private Long contactTimestamp;
+    /**
+     * 最近获得该节点的响应消息的时间, 为-1表示是新加入路由表的节点，没有通信过
+     */
+    private Long lastReceiveTimestamp;
+    /**
+     * 请求未响应的次数
+     */
+    private Integer noResponseCount;
+
+    public Record() {
+        noResponseCount = 0;
+        lastReceiveTimestamp = -1L;
+    }
+
+    public Record(HashCode160 id, String ip, String port) {
+        this();
+        nodeId = id;
+        nodeIp = ip;
+        nodePort = port;
+    }
 
     public HashCode160 getNodeId() {
         return nodeId;
@@ -36,28 +54,39 @@ public class Record implements Comparable<Record> {
         this.nodePort = nodePort;
     }
 
-    public Long getCreateTimestamp() {
-        return createTimestamp;
+    public Long getLastReceiveTimestamp() {
+        return lastReceiveTimestamp;
     }
 
-    public void setCreateTimestamp(Long createTimestamp) {
-        this.createTimestamp = createTimestamp;
-    }
-
-    public Long getContactTimestamp() {
-        return contactTimestamp;
-    }
-
-    public void setContactTimestamp(Long contactTimestamp) {
-        this.contactTimestamp = contactTimestamp;
+    public void setLastReceiveTimestamp(Long lastReceiveTimestamp) {
+        this.lastReceiveTimestamp = lastReceiveTimestamp;
     }
 
     @Override
     public int compareTo(Record record) {
-        return this.getContactTimestamp().compareTo(record.getContactTimestamp());
+        return this.getLastReceiveTimestamp().compareTo(record.getLastReceiveTimestamp());
     }
 
     public Integer distanceOf(HashCode160 target) {
         return this.nodeId.calculateDistance(target);
+    }
+
+    /**
+     * 每次对该记录所对应的节点发送请求时，调用此方法记录发送次数。
+     */
+    public void countRequest() {
+        noResponseCount++;
+    }
+
+    /**
+     * 请求接收到回复时，刷新未响应次数和最近通信时间
+     */
+    public void receivedResponse() {
+        noResponseCount = 0;
+        lastReceiveTimestamp = System.currentTimeMillis();
+    }
+
+    public Integer getNoResponseCount() {
+        return noResponseCount;
     }
 }
