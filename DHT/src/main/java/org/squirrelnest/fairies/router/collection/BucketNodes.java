@@ -21,7 +21,7 @@ public class BucketNodes {
         this.maxSize = recordMaxSize + backupMaxSize;
         this.tolerableMaxNoResponseCount = tolerableMaxNoResponseCount;
         int insuranceSize = (int)(this.maxSize * 1.5);
-        container = new ArrayList<Record>(insuranceSize);
+        container = new ArrayList<>(insuranceSize);
     }
 
     public synchronized void addNormalRecord(Record record) {

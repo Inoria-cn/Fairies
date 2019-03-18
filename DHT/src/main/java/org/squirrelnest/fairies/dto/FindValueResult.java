@@ -2,6 +2,7 @@ package org.squirrelnest.fairies.dto;
 
 import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.dto.AbstractResult;
+import org.squirrelnest.fairies.kvpairs.KVValueTypeEnum;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ public class FindValueResult<T> extends AbstractResult {
 
     private Boolean valueFound;
     private List<Record> nearerNodes;
+    private KVValueTypeEnum typeEnum;
     private T value;
 
     public FindValueResult() {
@@ -47,5 +49,13 @@ public class FindValueResult<T> extends AbstractResult {
 
     public void setValue(T value) {
         this.value = value;
+    }
+
+    public KVValueTypeEnum getTypeEnum() {
+        return typeEnum;
+    }
+
+    public void setTypeEnum(KVValueTypeEnum typeEnum) {
+        this.typeEnum = typeEnum;
     }
 }

@@ -12,8 +12,8 @@ public class File {
 
     final static String FILE_MSG_KEY_NAME = "name";
     final static String FILE_MSG_KEY_AUTHOR = "author";
-    final static String FILE_MSG_KEY_MODIFY = "modifyTime";
-    final static String FILE_MSG_KEY_HASHCODE = "hashcode";
+    final static String FILE_MSG_KEY_MODIFY = "lastUpdateTime";
+    final static String FILE_MSG_KEY_HASHCODE = "id";
 
     /**
      * 文件名

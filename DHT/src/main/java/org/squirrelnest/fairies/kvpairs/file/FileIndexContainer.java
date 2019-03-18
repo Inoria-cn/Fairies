@@ -28,8 +28,8 @@ public class FileIndexContainer {
     @Value("${fairies.dht.republish.cancelMs}")
     private Long leastRepublishMs;
 
-    @Value("${fairies.dht.timeout}")
-    private Long expireMs;
+    @Value("${fairies.dht.expireTime}")
+    private Long expireTime;
 
     @Resource(name = "localStorageDAO")
     private DataSource localStorage;
@@ -63,8 +63,25 @@ public class FileIndexContainer {
         return result;
     }
 
-    public void put(HashCode160 key, FileValue value) {
-        fileData.put(key, value);
+    /**
+     * 收到刷新请求时，为了防止旧值通过重新发布覆盖了新值，需要判断过期时间，存储过期较晚的那一个。
+     * 同时为了防止恶意发送过期时间极大的数据导致的无法更新，当过期时间超过系统规定的自身节点持有文件
+     * 的最长有效时间时，将该条刷新请求作废
+     * @param key 要刷新的key
+     * @param value 接收到的值
+     */
+    public void refreshPut(HashCode160 key, FileValue value) {
+        FileValue oldValue = fileData.get(key);
+        if(oldValue == null) {
+            fileData.put(key, value);
+            return;
+        }
+        boolean newerAndValid = value.getExpireTimestamp() > oldValue.getExpireTimestamp()
+                && TimeUtils.msAgo(0 -expireTime, value.getExpireTimestamp());
+        if(newerAndValid) {
+            value.setLastUpdateTime(System.currentTimeMillis());
+            fileData.put(key, value);
+        }
     }
 
     public Map<HashCode160, FileValue> getAllData() {

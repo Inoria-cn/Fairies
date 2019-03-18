@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.dto.FindNodeResult;
+import org.squirrelnest.fairies.dto.FindValueResult;
+import org.squirrelnest.fairies.kvpairs.KVValueTypeEnum;
 import org.squirrelnest.fairies.network.HttpRequestSender;
 import org.squirrelnest.fairies.procedure.FindNode;
 import org.squirrelnest.fairies.utils.ParamMapBuilder;
@@ -43,5 +45,19 @@ public class RequestSendService {
             LOGGER.error("Response object is not success, return code is " + queryResult.getReturnCode());
         }
         return queryResult.getNearerNodes();
+    }
+
+    public FindValueResult requestFindValue(Record server, HashCode160 targetId, KVValueTypeEnum typeEnum) {
+        Map<String, String> params = new ParamMapBuilder<String, String>().
+                addFields(localNodeService.getLocalAddressParams()).
+                addField("targetId", targetId.toString()).
+                addField("type", typeEnum.getValue()).
+                build();
+        String rawResult = httpRequestSender.getRequest(getTargetAddress(server), params);
+        FindValueResult queryResult = JSON.parseObject(rawResult, FindValueResult.class);
+        if(!queryResult.success()) {
+            LOGGER.error("Response object is not success, return code is " + queryResult.getReturnCode());
+        }
+        return queryResult;
     }
 }

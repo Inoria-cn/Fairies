@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class FindNode extends AbstractProcedure<List<Record>> {
 
-    private final String DECORATE_KEY_REQUEST = "requested";
-    private final String DECORATE_KEY_RESPONSE = "response";
+    final static String DECORATE_KEY_REQUEST = "requested";
+    final static String DECORATE_KEY_RESPONSE = "response";
 
     private final ExecutorService threadPool;
 
@@ -52,24 +52,28 @@ public class FindNode extends AbstractProcedure<List<Record>> {
         //多线程连续查询主要逻辑
         while(true) {
             lastMinDistance = calculateMinDistance(proceedNodes, targetId);
-            Set<Decorator<Record>> noRequestNodes = getNoRequestNodes();
-            if (noRequestNodes.isEmpty() && getNoResponseNodes().isEmpty()) {
+            Set<Decorator<Record>> noRequestNodes = getNoRequestNodes(proceedNodes);
+            if (noRequestNodes.isEmpty() && getNoResponseNodes(proceedNodes, requestTimeoutMs).isEmpty()) {
                 break;
             }
             for (Decorator<Record> record : noRequestNodes) {
                 queryOneNode(record, informer);
             }
-            blockUntilOneResponse(informer);
+            blockUntilOneResponse(informer, requestTimeoutMs);
         }
 
         //此时还没有返回的目标节点，视为连接失效
         threadPool.shutdownNow();
 
         //获取结果中k个离目标最近的节点，返回，至此完成了findNode过程。
-        List<Decorator<Record>> sortList = new ArrayList<>(proceedNodes);
+        return findKNearestNodesFromProceed(proceedNodes, targetId, k);
+    }
+
+    static List<Record> findKNearestNodesFromProceed(Set<Decorator<Record>> proceeds, HashCode160 target, int k) {
+        List<Decorator<Record>> sortList = new ArrayList<>(proceeds);
         sortList.sort((decorator1, decorator2) -> {
-            Integer distance1 = decorator1.getData().getNodeId().calculateDistance(targetId);
-            Integer distance2 = decorator2.getData().getNodeId().calculateDistance(targetId);
+            Integer distance1 = decorator1.getData().getNodeId().calculateDistance(target);
+            Integer distance2 = decorator2.getData().getNodeId().calculateDistance(target);
             Boolean response1 = (Boolean)decorator1.getOrDefault(DECORATE_KEY_RESPONSE, false);
             Boolean response2 = (Boolean)decorator2.getOrDefault(DECORATE_KEY_RESPONSE, false);
             if (distance1.equals(distance2)) {
@@ -80,8 +84,7 @@ public class FindNode extends AbstractProcedure<List<Record>> {
         int totalLength = sortList.size();
         int limit = totalLength < k ? totalLength : k;
 
-        result = Decorator.unDecorate(sortList.subList(0, limit));
-        return result;
+        return Decorator.unDecorate(sortList.subList(0, limit));
     }
 
     private void queryOneNode(Decorator<Record> receiver, Inform<Boolean> informer) {
@@ -97,7 +100,7 @@ public class FindNode extends AbstractProcedure<List<Record>> {
                 receiver.put(DECORATE_KEY_RESPONSE, true);
                 routerTable.knowNode(receiver.getData(), true);
                 routerTable.knowNodes(queryResult, false);
-                List<Record> filtered = filterNearerRecords(queryResult);
+                List<Record> filtered = filterNearerRecords(queryResult, targetId, lastMinDistance);
                 proceedNodes.addAll(Decorator.decoratorSet(new HashSet<>(filtered)));
                 return queryResult;
             }
@@ -106,7 +109,11 @@ public class FindNode extends AbstractProcedure<List<Record>> {
         threadPool.submit(task);
     }
 
-    private Set<Decorator<Record>> getNoRequestNodes() {
+    //
+    //Methods below can be reused in findValue procedure~
+    //
+
+    static Set<Decorator<Record>> getNoRequestNodes(Set<Decorator<Record>> proceedNodes) {
         //For thread safe.
         Set<Decorator<Record>> view = new HashSet<>(proceedNodes);
         Set<Decorator<Record>> result = new HashSet<>(16);
@@ -119,7 +126,7 @@ public class FindNode extends AbstractProcedure<List<Record>> {
         return result;
     }
 
-    private Set<Decorator<Record>> getNoResponseNodes() {
+    static Set<Decorator<Record>> getNoResponseNodes(Set<Decorator<Record>> proceedNodes, int timeout) {
         //For thread safe.
         Set<Decorator<Record>> view = new HashSet<>(proceedNodes);
         Set<Decorator<Record>> result = new HashSet<>(16);
@@ -127,14 +134,14 @@ public class FindNode extends AbstractProcedure<List<Record>> {
         for(Decorator<Record> decorator : view) {
             Boolean hasResponse = (Boolean)decorator.getOrDefault(DECORATE_KEY_RESPONSE, false);
             Long requestTime = (Long)decorator.getOrDefault(DECORATE_KEY_REQUEST, currentTime);
-            if(!hasResponse && currentTime - requestTime <= requestTimeoutMs) {
+            if(!hasResponse && currentTime - requestTime <= timeout) {
                 result.add(decorator);
             }
         }
         return result;
     }
 
-    private int calculateMinDistance(Collection<Decorator<Record>> range, HashCode160 target) {
+    static int calculateMinDistance(Collection<Decorator<Record>> range, HashCode160 target) {
         int minDistance = 161;
         for(Decorator<Record> record : range) {
             int distance = record.getData().getNodeId().calculateDistance(target);
@@ -146,12 +153,12 @@ public class FindNode extends AbstractProcedure<List<Record>> {
     }
 
     //将通知器状态设置为false，即会阻塞当前线程，直到任意查询线程返回结果时将状态置为true或者超过最长等待时间为止
-    private void blockUntilOneResponse(Inform<Boolean> informer) {
+    static void blockUntilOneResponse(Inform<Boolean> informer, int timeout) {
          informer.setState(false);
-         informer.blockUntilState(true, (long)requestTimeoutMs);
+         informer.blockUntilState(true, (long)timeout);
     }
 
-    private List<Record> filterNearerRecords(List<Record> source) {
+    static List<Record> filterNearerRecords(List<Record> source, HashCode160 targetId, int lastMinDistance) {
         List<Record> result = new ArrayList<>(source.size());
         for (Record record : source) {
             if (record.getNodeId().calculateDistance(targetId) < lastMinDistance) {

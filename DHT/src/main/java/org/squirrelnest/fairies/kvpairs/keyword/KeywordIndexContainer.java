@@ -66,20 +66,35 @@ public class KeywordIndexContainer {
         return targetRecord.addFile(target);
     }
 
-    public void refreshKeywordRecord(HashCode160 keywordHash, KeywordValue newValue) {
-        newValue.setLastRepublicReceiveTime(System.currentTimeMillis());
-        keywordData.put(keywordHash, newValue);
+    /**
+     * 收到刷新请求时，为了防止旧值通过重新发布覆盖了新值，需要判断条目最近更新时间。
+     * 同时为了防止恶意发送更新时间极大的数据，当条目更新时间超过当前时间时，将该条刷新请求作废
+     * @param keywordHash 要刷新的key
+     * @param newValue 接收到的值
+     */
+    public void refreshPut(HashCode160 keywordHash, KeywordValue newValue) {
+        KeywordValue oldValue = keywordData.get(keywordHash);
+        if(oldValue == null) {
+            keywordData.put(keywordHash, newValue);
+            return;
+        }
+        boolean newerAndValid = newValue.getLastFileUpdateTime() > oldValue.getLastFileUpdateTime()
+                && newValue.getLastFileUpdateTime() < System.currentTimeMillis();
+        if (newerAndValid) {
+            newValue.setLastReceiveTime(System.currentTimeMillis());
+            keywordData.put(keywordHash, newValue);
+        }
     }
 
     /**
      * 获取需要重新发布的文件记录。
-     * 最近一段时间之内有更新的则不需要重新发布
+     * 最近一段时间之内接收过重新发布请求的则不需要再重新发布
      */
     public Map<HashCode160, KeywordValue> getDataForRepublish() {
         Map<HashCode160, KeywordValue> result = new HashMap<>(16);
         for(Map.Entry<HashCode160, KeywordValue> entry : keywordData.entrySet()) {
             KeywordValue keywordValue = entry.getValue();
-            if(TimeUtils.msAgo(leastRepublishMs, keywordValue.getLastRepublicReceiveTime())) {
+            if(TimeUtils.msAgo(leastRepublishMs, keywordValue.getLastReceiveTime())) {
                 result.put(entry.getKey(), entry.getValue());
             }
         }

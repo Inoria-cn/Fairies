@@ -5,7 +5,11 @@ import org.springframework.stereotype.Component;
 import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.exception.GetNodeException;
 import org.squirrelnest.fairies.domain.HashCode160;
+import org.squirrelnest.fairies.procedure.FindNode;
 import org.squirrelnest.fairies.service.LocalNodeService;
+import org.squirrelnest.fairies.service.RequestSendService;
+import org.squirrelnest.fairies.thread.GlobalThreadService;
+import org.squirrelnest.fairies.utils.TimeUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -27,6 +31,27 @@ public class RouterTable {
 
     @Value("${fairies.dht.maxNoResponse}")
     private int maxNoResponse;
+
+    @Value("${fairies.dht.kBucketRefresh}")
+    private int needRefreshTime;
+
+    /*
+     * for send find node request -- START
+     */
+    @Value("${fairies.dht.alpha}")
+    private int alpha;
+
+    @Value("fairies.dht.request.timeout}")
+    private int requestTimeout;
+
+    @Resource
+    private RequestSendService requestSendService;
+
+    @Resource
+    private GlobalThreadService globalThreadService;
+    /*
+     * for send find node request -- END
+     */
 
     @Resource
     private LocalNodeService localNodeService;
@@ -116,6 +141,23 @@ public class RouterTable {
     public void knowNodes(List<Record> records, boolean directReceive) {
         for (Record record : records) {
             knowNode(record.getNodeId(), record.getNodeIp(), record.getNodePort(), directReceive);
+        }
+    }
+
+    /**
+     * 该方法需要定时调用，在一段时间内都没有更新的bucket其中选出一个节点执行findNode查找操作
+     */
+    public void refreshOldBuckets() {
+        for(Bucket bucket : kBuckets) {
+            if(bucket.isEmpty()) {
+                continue;
+            }
+            if(TimeUtils.msAgo(needRefreshTime, bucket.getLastRequestTimestamp())) {
+                Record forRefresh = bucket.getOneNodeForRefresh();
+                FindNode findNode = new FindNode(localId, forRefresh.getNodeId(),
+                        kSize, alpha, requestTimeout, this, requestSendService);
+                globalThreadService.makeItRum(() -> findNode.execute());
+            }
         }
     }
 }

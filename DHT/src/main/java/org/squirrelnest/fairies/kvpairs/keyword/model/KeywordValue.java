@@ -21,10 +21,18 @@ public class KeywordValue {
 
     private String keyword;
     private Map<HashCode160, File> id2File;
-    private Long lastRepublicReceiveTime;
+    /**
+     * 该value所在kv对最近一次接收到存储请求的时间，一个小时以内存储过的，自身不再向其他节点发出刷新请求
+     */
+    private Long lastReceiveTime;
+    /**
+     * 用于判断收到的刷新请求是否比当前节点的数据要新，用其内部包含的文件条目数据最新一次变动的时间来表示
+     */
+    private Long lastFileUpdateTime;
 
     public KeywordValue() {
         this.id2File = new HashMap<>(16);
+        this.lastFileUpdateTime = System.currentTimeMillis();
     }
 
     public boolean addFile(File file) {
@@ -32,6 +40,7 @@ public class KeywordValue {
             LOGGER.error("file is invalid!");
             return false;
         }
+        this.lastFileUpdateTime = System.currentTimeMillis();
         HashCode160 id = file.getId();
         id2File.put(id, file);
         return true;
@@ -67,11 +76,15 @@ public class KeywordValue {
         this.id2File = id2File;
     }
 
-    public Long getLastRepublicReceiveTime() {
-        return lastRepublicReceiveTime;
+    public Long getLastReceiveTime() {
+        return lastReceiveTime;
     }
 
-    public void setLastRepublicReceiveTime(Long lastRepublicReceiveTime) {
-        this.lastRepublicReceiveTime = lastRepublicReceiveTime;
+    public void setLastReceiveTime(Long lastReceiveTime) {
+        this.lastReceiveTime = lastReceiveTime;
+    }
+
+    public Long getLastFileUpdateTime() {
+        return lastFileUpdateTime;
     }
 }

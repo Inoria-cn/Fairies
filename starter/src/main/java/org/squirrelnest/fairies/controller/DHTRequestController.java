@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.dto.FindNodeResult;
+import org.squirrelnest.fairies.dto.FindValueResult;
 import org.squirrelnest.fairies.dto.PingResult;
 import org.squirrelnest.fairies.service.ResponseService;
 import org.squirrelnest.fairies.utils.RequestUtils;
@@ -18,6 +19,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 /**
+ * DHT系统所有可能接收的请求：ping, find_node, join_node(新节点加入), find_value(file or keyword),
+ * ping, add_file_for_keyword, store_keyword(for refresh only), store_file
+ *
  * Created by Inoria on 2019/3/17.
  */
 @Controller
@@ -33,12 +37,13 @@ public class DHTRequestController {
         String fetchedIp = RequestUtils.getRequestIp(request);
         //客户端发来的自己ip和通过request获取到的ip不能匹配
         if(StringUtils.isNotBlank(announceIp) && !announceIp.equalsIgnoreCase(fetchedIp)) {
+            LOGGER.error("Announced ip mismatch with fetched ip , first is " + announceIp + " and second is " + fetchedIp);
             return null;
         }
         return fetchedIp;
     }
 
-    @GetMapping
+    @GetMapping("/findNode")
     public String handleFindNode(@RequestParam String nodeId,
                                  @RequestParam String nodeIp,
                                  @RequestParam String nodePort,
@@ -53,6 +58,25 @@ public class DHTRequestController {
         }
 
         FindNodeResult result = responseService.findNode(client, checkedIp, nodePort, target);
+        return JSON.toJSONString(result);
+    }
+
+    @GetMapping("/findValue")
+    public String handleFindValue(@RequestParam String nodeId,
+                                  @RequestParam String nodeIp,
+                                  @RequestParam String nodePort,
+                                  @RequestParam String targetId,
+                                  @RequestParam String type,
+                                  HttpServletRequest request) {
+        HashCode160 client = HashCode160.parseString(nodeId);
+        HashCode160 target = HashCode160.parseString(targetId);
+
+        String checkedIp = checkAndGetIp(nodeIp, request);
+        if (StringUtils.isBlank(checkedIp)) {
+            return null;
+        }
+
+        FindValueResult result = responseService.findValue(client, nodeIp, nodePort, target, type);
         return JSON.toJSONString(result);
     }
 

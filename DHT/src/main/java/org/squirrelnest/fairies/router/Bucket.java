@@ -1,5 +1,6 @@
 package org.squirrelnest.fairies.router;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.router.collection.BucketNodes;
@@ -11,16 +12,6 @@ import java.util.*;
  * Created by Inoria on 2019/3/7.
  */
 public class Bucket {
-    /**
-     * bucket最多容纳的节点数
-     */
-    private final Integer bucketSize;
-
-    /**
-     * 备份区最多节点数
-     */
-    private final Integer copySize;
-
     private final HashCode160 localNodeId;
 
     private final BucketNodes records;
@@ -32,8 +23,6 @@ public class Bucket {
 
     public Bucket(HashCode160 localNodeId, int bucketSize, int copySize, int maxNoResponse) {
         this.localNodeId = localNodeId;
-        this.bucketSize = bucketSize;
-        this.copySize = copySize;
         this.records = new BucketNodes(bucketSize, copySize, maxNoResponse);
     }
 
@@ -115,5 +104,13 @@ public class Bucket {
 
     public Long getLastRequestTimestamp() {
         return lastRequestTimestamp;
+    }
+
+    public Record getOneNodeForRefresh() {
+        List<Record> innerRecords = records.getClonedRecords();
+        if (CollectionUtils.isEmpty(innerRecords)) {
+            return null;
+        }
+        return innerRecords.get(innerRecords.size() - 1);
     }
 }

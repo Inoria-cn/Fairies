@@ -16,32 +16,12 @@ public class FileValue {
     private List<String> keywords;
     private HashCode160 lastSourceNodeId;
     private Long lastUpdateTime;
-    //一个kv对最初创建的时候进行设置，以后的转发不会修改该字段，以保证系统中数据的时效性。
+    //转发不会修改该字段，主动发布时会，以保证系统中数据的时效性。
     private Long expireTimestamp;
 
-    private static final String NODE_ID_FIELD_NAME = "lastSourceNodeId";
-
-    @Override
-    public String toString() {
-        JSONObject rawJSONObject = JSON.parseObject(JSON.toJSONString(this));
-        rawJSONObject.put(NODE_ID_FIELD_NAME, lastSourceNodeId.toString());
-        return '1' + rawJSONObject.toJSONString();
-    }
-
-    /**
+    /*
      * 发布文件时，需要发布文件所有者为自己。下载文件时，如果所有者无法连接，则发送STORE消息更新所有者列表，删除无效节点并加上自己。
-     * @param raw 带有特定前缀的序列化文件消息
-     * @return 反序列化后构建的此类对象
      */
-    public static FileValue parseString(String raw) {
-        JSONObject rawJSONObject = JSON.parseObject(raw);
-        String lastNodeIdString = rawJSONObject.getString(NODE_ID_FIELD_NAME);
-        rawJSONObject.put(NODE_ID_FIELD_NAME, null);
-        FileValue result = JSON.parseObject(rawJSONObject.toJSONString(), FileValue.class);
-        result.setLastSourceNodeId(HashCode160.parseString(lastNodeIdString));
-        return result;
-    }
-
     public String getName() {
         return name;
     }
