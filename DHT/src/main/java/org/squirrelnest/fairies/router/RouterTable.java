@@ -2,6 +2,7 @@ package org.squirrelnest.fairies.router;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.exception.GetNodeException;
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.service.LocalNodeService;

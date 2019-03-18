@@ -6,4 +6,7 @@ package org.squirrelnest.fairies.procedure.interfaces;
 public interface DHTProcedure<T> {
 
     T execute();
+
+    T getResult();
+
 }

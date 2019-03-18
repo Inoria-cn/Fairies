@@ -1,6 +1,4 @@
-package org.squirrelnest.fairies.router;
-
-import org.squirrelnest.fairies.domain.HashCode160;
+package org.squirrelnest.fairies.domain;
 
 /**
  * Created by Inoria on 2019/3/7.

@@ -1,7 +1,7 @@
 package org.squirrelnest.fairies.router;
 
 import org.squirrelnest.fairies.domain.HashCode160;
-import org.squirrelnest.fairies.exception.InvalidStateException;
+import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.router.collection.BucketNodes;
 
 import java.util.*;

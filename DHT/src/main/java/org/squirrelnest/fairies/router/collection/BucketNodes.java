@@ -1,9 +1,8 @@
 package org.squirrelnest.fairies.router.collection;
 
-import com.sun.org.apache.regexp.internal.RE;
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.exception.InvalidStateException;
-import org.squirrelnest.fairies.router.Record;
+import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.utils.CollectionUtils;
 
 import java.util.ArrayList;

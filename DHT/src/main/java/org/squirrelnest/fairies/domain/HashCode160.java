@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.squirrelnest.fairies.utils.BinaryUtils;
 
 import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * DHT系统的基础模型：160hash值作为id
@@ -49,7 +50,7 @@ public class HashCode160 {
         this.bits = bits;
     }
 
-    public Character[] getBitsAsChar() {
+    public Character[] bitsAsChar() {
         return BinaryUtils.transfer(bits);
     }
 
@@ -91,13 +92,13 @@ public class HashCode160 {
      */
     @Override
     public String toString() {
-        return new String(getBits());
+        return Base64.getEncoder().encodeToString(getBits());
     }
 
     public static HashCode160 parseString(String raw) {
         if (StringUtils.isEmpty(raw)) {
             return null;
         }
-        return new HashCode160(raw.getBytes());
+        return new HashCode160(Base64.getDecoder().decode(raw));
     }
 }

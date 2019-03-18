@@ -9,13 +9,14 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>starter</artifactId>
+    <artifactId>share</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.squirrelnest.fairies</groupId>
-            <artifactId>DHT</artifactId>
+            <artifactId>common</artifactId>
             <version>1.0.0</version>
         </dependency>
     </dependencies>
+
 </project>
