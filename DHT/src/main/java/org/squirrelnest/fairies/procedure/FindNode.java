@@ -6,7 +6,7 @@ import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.router.RouterTable;
 import org.squirrelnest.fairies.service.RequestSendService;
 import org.squirrelnest.fairies.thread.CallableWithInform;
-import org.squirrelnest.fairies.thread.inform.MessageGetInform;
+import org.squirrelnest.fairies.thread.inform.OneResponseInform;
 import org.squirrelnest.fairies.thread.inform.interfaces.Inform;
 
 import java.util.*;
@@ -46,7 +46,7 @@ public class FindNode extends AbstractProcedure<List<Record>> {
     @Override
     public List<Record> execute() {
 
-        Inform<Boolean> informer = new MessageGetInform();
+        Inform<Boolean> informer = new OneResponseInform();
         proceedNodes = Decorator.decoratorSet(new HashSet<>(startNodes));
 
         //多线程连续查询主要逻辑
@@ -95,10 +95,10 @@ public class FindNode extends AbstractProcedure<List<Record>> {
             @Override
             public List<Record> originCall() throws Exception {
                 receiver.put(DECORATE_KEY_REQUEST, System.currentTimeMillis());
-                routerTable.requestNode(receiver.getData().getNodeId());
+
                 List<Record> queryResult = requestSendService.requestNearestNodes(receiver.getData(), targetId);
                 receiver.put(DECORATE_KEY_RESPONSE, true);
-                routerTable.knowNode(receiver.getData(), true);
+
                 routerTable.knowNodes(queryResult, false);
                 List<Record> filtered = filterNearerRecords(queryResult, targetId, lastMinDistance);
                 proceedNodes.addAll(Decorator.decoratorSet(new HashSet<>(filtered)));

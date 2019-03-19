@@ -12,7 +12,7 @@ import javax.annotation.Resource;
  * Created by Inoria on 2019/3/14.
  */
 @Component
-public class ScheduleRunner {
+public class CleanScheduleRunner {
 
     @Resource
     private KeywordIndexContainer keywordIndexContainer;

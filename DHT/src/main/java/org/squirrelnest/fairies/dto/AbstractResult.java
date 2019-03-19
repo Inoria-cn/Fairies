@@ -7,6 +7,7 @@ public abstract class AbstractResult {
     public static final int RETURN_CODE_SUCCESS = 0;
     public static final int RETURN_CODE_VALUE_NOT_FOUNT = 1;
     public static final int RETURN_CODE_PARAM_ERROR = 11;
+    public static final int RETURN_CODE_FAILED = -1;
 
     private Integer returnCode;
     private String returnMessage;

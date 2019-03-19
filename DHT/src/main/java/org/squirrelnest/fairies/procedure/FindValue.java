@@ -8,7 +8,7 @@ import org.squirrelnest.fairies.kvpairs.KVValueTypeEnum;
 import org.squirrelnest.fairies.router.RouterTable;
 import org.squirrelnest.fairies.service.RequestSendService;
 import org.squirrelnest.fairies.thread.CallableWithInform;
-import org.squirrelnest.fairies.thread.inform.MessageGetInform;
+import org.squirrelnest.fairies.thread.inform.OneResponseInform;
 import org.squirrelnest.fairies.thread.inform.interfaces.Inform;
 
 import java.util.*;
@@ -67,7 +67,7 @@ public class FindValue extends AbstractProcedure<FindValueResult> {
     @SuppressWarnings("unchecked")
     public FindValueResult execute() {
 
-        Inform<Boolean> informer = new MessageGetInform();
+        Inform<Boolean> informer = new OneResponseInform();
         proceedNodes = Decorator.decoratorSet(new HashSet<>(startNodes));
 
         //多线程连续查询主要逻辑
@@ -116,12 +116,10 @@ public class FindValue extends AbstractProcedure<FindValueResult> {
             public List<Record> originCall() throws Exception {
 
                 receiver.put(DECORATE_KEY_REQUEST, System.currentTimeMillis());
-                routerTable.requestNode(receiver.getData().getNodeId());
 
                 FindValueResult queryResult = requestSendService.requestFindValue(receiver.getData(), targetId, typeEnum);
 
                 receiver.put(DECORATE_KEY_RESPONSE, true);
-                routerTable.knowNode(receiver.getData(), true);
 
                 if (queryResult.getValueFound()) {
                     receiver.put(DECORATE_KEY_VALUE, queryResult.getValue());
@@ -139,6 +137,5 @@ public class FindValue extends AbstractProcedure<FindValueResult> {
         task.setInform(informer);
         threadPool.submit(task);
     }
-
 
 }

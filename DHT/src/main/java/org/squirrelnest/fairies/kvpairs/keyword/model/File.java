@@ -10,11 +10,6 @@ import java.util.Map;
  */
 public class File {
 
-    final static String FILE_MSG_KEY_NAME = "name";
-    final static String FILE_MSG_KEY_AUTHOR = "author";
-    final static String FILE_MSG_KEY_MODIFY = "lastUpdateTime";
-    final static String FILE_MSG_KEY_HASHCODE = "id";
-
     /**
      * 文件名
      */
@@ -31,10 +26,6 @@ public class File {
      * 文件最近修改时间，便于查询者查找近期文件
      */
     private Long lastUpdateTime;
-    /**
-     * 上次收到该文件的序列化消息的时间
-     */
-    private Long kvMessageUpdateTime;
     /**
      * 最初的发布者设置的过期时间
      */
@@ -72,14 +63,6 @@ public class File {
         this.lastUpdateTime = lastUpdateTime;
     }
 
-    public Long getKvMessageUpdateTime() {
-        return kvMessageUpdateTime;
-    }
-
-    public void setKvMessageUpdateTime(Long kvMessageUpdateTime) {
-        this.kvMessageUpdateTime = kvMessageUpdateTime;
-    }
-
     public Long getExpireTime() {
         return expireTime;
     }
@@ -93,16 +76,5 @@ public class File {
             return true;
         }
         return false;
-    }
-
-    public static File getFromMap(Map<String, Object> map) {
-        File newFile = new File();
-        String hashcodeString = (String)map.get(FILE_MSG_KEY_HASHCODE);
-        newFile.setId(HashCode160.parseString(hashcodeString));
-        newFile.setName((String)map.get(FILE_MSG_KEY_NAME));
-        newFile.setAuthor((String)map.get(FILE_MSG_KEY_AUTHOR));
-        newFile.setLastUpdateTime((Long)map.get(FILE_MSG_KEY_MODIFY));
-        newFile.setKvMessageUpdateTime(System.currentTimeMillis());
-        return newFile;
     }
 }

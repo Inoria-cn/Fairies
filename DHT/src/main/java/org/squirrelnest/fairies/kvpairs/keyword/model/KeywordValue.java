@@ -15,8 +15,6 @@ import java.util.Map;
  */
 public class KeywordValue {
 
-    final static String FILE_MSG_KEY_KEYWORD = "keyword";
-
     private final static Logger LOGGER = LoggerFactory.getLogger(KeywordValue.class);
 
     private String keyword;
@@ -46,19 +44,6 @@ public class KeywordValue {
         return true;
     }
 
-    public static KeywordValue createFromString(String raw) {
-        Map<String, Object> map = JSON.parseObject(raw);
-        String keyword = (String)map.get(FILE_MSG_KEY_KEYWORD);
-        File newFile = File.getFromMap(map);
-        if (StringUtils.isBlank(keyword) || !newFile.valid()) {
-            throw new DHTMessageException("Can't read this keyword add message");
-        }
-
-        KeywordValue result = new KeywordValue();
-        result.setKeyword(keyword);
-        result.getId2File().put(newFile.getId(), newFile);
-        return result;
-    }
 
     public String getKeyword() {
         return keyword;

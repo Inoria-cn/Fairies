@@ -6,6 +6,10 @@ package org.squirrelnest.fairies.kvpairs;
 public enum KVValueTypeEnum {
     FILE("file"),
     KEYWORD("keyword"),
+    /**
+     * 用于为某个keyword索引项添加一个新文件
+     */
+    KEYWORD_FILE("keyword_file"),
     UNKNOWN_TYPE("unknown");
 
     private String value;

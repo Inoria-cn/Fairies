@@ -5,28 +5,28 @@ import org.squirrelnest.fairies.thread.inform.interfaces.Inform;
 /**
  * Created by Inoria on 2019/3/16.
  */
-public class MessageGetInform implements Inform<Boolean> {
+public class ResponseCountInform implements Inform<Integer> {
 
-    private Boolean state = false;
+    private Integer state = 0;
 
     @Override
-    public void setState(Boolean state) {
+    public void setState(Integer state) {
         this.state = state;
     }
 
     @Override
-    public void blockUntilState(Boolean targetState, Long maxMs) {
+    public void blockUntilState(Integer targetState, Long maxMs) {
         Long startMs = System.currentTimeMillis();
         while (true) {
             Long currentMs = System.currentTimeMillis();
-            if (currentMs - startMs >= maxMs || state == targetState) {
+            if (currentMs - startMs >= maxMs || state >= targetState) {
                 break;
             }
         }
     }
 
     @Override
-    public void inform() {
-        this.state = true;
+    public synchronized void inform() {
+        this.state++;
     }
 }

@@ -70,18 +70,20 @@ public class FileIndexContainer {
      * @param key 要刷新的key
      * @param value 接收到的值
      */
-    public void refreshPut(HashCode160 key, FileValue value) {
+    public boolean refreshPut(HashCode160 key, FileValue value) {
         FileValue oldValue = fileData.get(key);
         if(oldValue == null) {
             fileData.put(key, value);
-            return;
+            return true;
         }
         boolean newerAndValid = value.getExpireTimestamp() > oldValue.getExpireTimestamp()
                 && TimeUtils.msAgo(0 -expireTime, value.getExpireTimestamp());
         if(newerAndValid) {
             value.setLastUpdateTime(System.currentTimeMillis());
             fileData.put(key, value);
+            return true;
         }
+        return false;
     }
 
     public Map<HashCode160, FileValue> getAllData() {

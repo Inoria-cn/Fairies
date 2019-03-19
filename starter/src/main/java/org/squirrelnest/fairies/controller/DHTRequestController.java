@@ -12,6 +12,7 @@ import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.dto.FindNodeResult;
 import org.squirrelnest.fairies.dto.FindValueResult;
 import org.squirrelnest.fairies.dto.PingResult;
+import org.squirrelnest.fairies.dto.StoreResult;
 import org.squirrelnest.fairies.service.ResponseService;
 import org.squirrelnest.fairies.utils.RequestUtils;
 
@@ -77,6 +78,28 @@ public class DHTRequestController {
         }
 
         FindValueResult result = responseService.findValue(client, nodeIp, nodePort, target, type);
+        return JSON.toJSONString(result);
+    }
+
+    @GetMapping("/store")
+    public String handleFindValue(@RequestParam String nodeId,
+                                  @RequestParam String nodeIp,
+                                  @RequestParam String nodePort,
+                                  @RequestParam String key,
+                                  @RequestParam String value,
+                                  @RequestParam String type,
+                                  @RequestParam(required = false) String keyword,
+                                  @RequestParam(required = false) String expireTime,
+                                  HttpServletRequest request) {
+        HashCode160 client = HashCode160.parseString(nodeId);
+        HashCode160 keyId = HashCode160.parseString(key);
+
+        String checkedIp = checkAndGetIp(nodeIp, request);
+        if (StringUtils.isBlank(checkedIp)) {
+            return null;
+        }
+
+        StoreResult result = responseService.store(client, nodeIp, nodePort, keyId, value, type, keyword, expireTime);
         return JSON.toJSONString(result);
     }
 

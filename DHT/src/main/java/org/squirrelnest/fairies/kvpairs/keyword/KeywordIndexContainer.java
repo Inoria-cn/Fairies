@@ -72,18 +72,20 @@ public class KeywordIndexContainer {
      * @param keywordHash 要刷新的key
      * @param newValue 接收到的值
      */
-    public void refreshPut(HashCode160 keywordHash, KeywordValue newValue) {
+    public boolean refreshPut(HashCode160 keywordHash, KeywordValue newValue) {
         KeywordValue oldValue = keywordData.get(keywordHash);
         if(oldValue == null) {
             keywordData.put(keywordHash, newValue);
-            return;
+            return true;
         }
         boolean newerAndValid = newValue.getLastFileUpdateTime() > oldValue.getLastFileUpdateTime()
                 && newValue.getLastFileUpdateTime() < System.currentTimeMillis();
         if (newerAndValid) {
             newValue.setLastReceiveTime(System.currentTimeMillis());
             keywordData.put(keywordHash, newValue);
+            return true;
         }
+        return false;
     }
 
     /**

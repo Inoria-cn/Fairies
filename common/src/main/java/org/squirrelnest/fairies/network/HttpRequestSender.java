@@ -58,7 +58,7 @@ public class HttpRequestSender {
      * @param params 请求参数（url参数）
      * @return 序列化json结果
      */
-    public String getRequest(String address, Map<String, String> params) {
+    public String httpGet(String address, Map<String, String> params) {
         String result = null;
         HttpGet httpGet = new HttpGet(address);
         httpGet.setConfig(defaultConfig());
