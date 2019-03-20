@@ -6,18 +6,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.domain.Record;
-import org.squirrelnest.fairies.dto.FindNodeResult;
-import org.squirrelnest.fairies.dto.FindValueResult;
-import org.squirrelnest.fairies.dto.PingResult;
-import org.squirrelnest.fairies.dto.StoreResult;
+import org.squirrelnest.fairies.dto.*;
 import org.squirrelnest.fairies.kvpairs.KVValueTypeEnum;
 import org.squirrelnest.fairies.network.HttpRequestSender;
 import org.squirrelnest.fairies.router.RouterTable;
-import org.squirrelnest.fairies.utils.ParamMapBuilder;
+import org.squirrelnest.fairies.utils.MapBuilder;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Inoria on 2019/3/16.
@@ -31,6 +27,7 @@ public class RequestSendService {
     private static final String REQUEST_PATH_FIND_VALUE = "/DHT/findValue";
     private static final String REQUEST_PATH_STORE = "/DHT/store";
     private static final String REQUEST_PATH_PING = "/DHT/ping";
+    private static final String REQUEST_NODE_JOIN = "/DHT/nodeJoin";
 
 
     @Resource
@@ -42,7 +39,10 @@ public class RequestSendService {
     @Resource
     private RouterTable routerTable;
 
-    private String sendGetRequest(Record record, String path, ParamMapBuilder<String, String> paramBuilder) {
+    private String sendGetRequest(Record record, String path, MapBuilder<String, String> paramBuilder) {
+        if(localNodeService.getLocalNodeId().equals(record.getNodeId())) {
+            return null;
+        }
         routerTable.requestNode(record.getNodeId());
         String requestUrl = record.getNodeIp() + ":" + record.getNodePort() + path;
         String queryResult = httpRequestSender.httpGet(requestUrl, paramBuilder.build());
@@ -51,7 +51,7 @@ public class RequestSendService {
     }
 
     public List<Record> requestNearestNodes(Record server, HashCode160 targetId) {
-        ParamMapBuilder<String, String> builder = new ParamMapBuilder<String, String>().
+        MapBuilder<String, String> builder = new MapBuilder<String, String>().
                 addFields(localNodeService.getLocalAddressParams()).
                 addField("targetId", targetId.toString());
         String rawResult = sendGetRequest(server, REQUEST_PATH_FIND_NODES , builder);
@@ -63,7 +63,7 @@ public class RequestSendService {
     }
 
     public FindValueResult requestFindValue(Record server, HashCode160 targetId, KVValueTypeEnum typeEnum) {
-        ParamMapBuilder<String, String> builder = new ParamMapBuilder<String, String>().
+        MapBuilder<String, String> builder = new MapBuilder<String, String>().
                 addFields(localNodeService.getLocalAddressParams()).
                 addField("targetId", targetId.toString()).
                 addField("type", typeEnum.getValue());
@@ -81,7 +81,7 @@ public class RequestSendService {
      */
     public Boolean requestStore(Record server, HashCode160 key, Object value,
                                 KVValueTypeEnum typeEnum, String keyword, Long expireTime) {
-        ParamMapBuilder<String, String> builder = new ParamMapBuilder<String, String>().
+        MapBuilder<String, String> builder = new MapBuilder<String, String>().
                 addFields(localNodeService.getLocalAddressParams()).
                 addField("key", key.toString()).
                 addField("value", JSON.toJSONString(value)).
@@ -100,7 +100,7 @@ public class RequestSendService {
     }
 
     public Boolean requestPing(Record server) {
-        ParamMapBuilder<String, String> builder = new ParamMapBuilder<String, String>().
+        MapBuilder<String, String> builder = new MapBuilder<String, String>().
                 addFields(localNodeService.getLocalAddressParams());
         String rawResult = sendGetRequest(server, REQUEST_PATH_PING, builder);
         PingResult queryResult = JSON.parseObject(rawResult, PingResult.class);
@@ -108,5 +108,12 @@ public class RequestSendService {
             LOGGER.error("Response object of ping request is not success, return code is " + queryResult.getReturnCode());
         }
         return queryResult.success();
+    }
+
+    public NodeJoinResult requestNodeJoin(Record startNode) {
+        MapBuilder<String, String> builder = new MapBuilder<String, String>().
+                addFields(localNodeService.getLocalAddressParams());
+        String rawResult = sendGetRequest(startNode, REQUEST_NODE_JOIN, builder);
+        return JSON.parseObject(rawResult, NodeJoinResult.class);
     }
 }

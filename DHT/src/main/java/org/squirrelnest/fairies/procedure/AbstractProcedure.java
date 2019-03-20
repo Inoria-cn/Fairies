@@ -10,7 +10,6 @@ import org.squirrelnest.fairies.service.RequestSendService;
  */
 abstract class AbstractProcedure<T> implements DHTProcedure<T> {
 
-    protected final HashCode160 localId;
     protected final HashCode160 targetId;
     protected final int k;
     protected final int requestTimeoutMs;
@@ -20,9 +19,8 @@ abstract class AbstractProcedure<T> implements DHTProcedure<T> {
 
     protected T result = null;
 
-    protected AbstractProcedure(HashCode160 localId, HashCode160 targetId, int k, int alpha, int requestTimeoutMs,
+    protected AbstractProcedure(HashCode160 targetId, int k, int alpha, int requestTimeoutMs,
                                 RouterTable routerTable, RequestSendService sendService) {
-        this.localId = localId;
         this.targetId = targetId;
         this.k = k;
         this.alpha = alpha;

@@ -29,7 +29,7 @@ public class Ping extends AbstractProcedure<Map<HashCode160, Boolean>> {
 
     public Ping(int k, int alpha, int requestTimeoutMs,
                 List<Record> targets, RouterTable routerTable, RequestSendService sendService) {
-        super(null, null, k, alpha, requestTimeoutMs, routerTable, sendService);
+        super(null, k, alpha, requestTimeoutMs, routerTable, sendService);
         this.targetNodes = targets;
         this.result = new HashMap<>(targets.size());
 

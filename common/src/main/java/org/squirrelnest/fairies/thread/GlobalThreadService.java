@@ -28,7 +28,7 @@ public class GlobalThreadService {
                 3, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
-    public void makeItRum(Runnable target) {
+    public void makeItRun(Runnable target) {
         pool.execute(target);
     }
 

@@ -32,6 +32,7 @@ public class CleanScheduleRunner {
     @Scheduled(initialDelay = 600000, fixedRate = 3600000L)
     public void timedTaskHourForRouterTable() {
         routerTable.refreshOldBuckets();
+        routerTable.backup();
     }
 
     @Scheduled(initialDelay = 900000, fixedRate = 3600000L)

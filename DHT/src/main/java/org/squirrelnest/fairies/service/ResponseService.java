@@ -75,6 +75,7 @@ public class ResponseService {
             result.setValueFound(true);
             result.setValue(kvValue);
         }
+        result.setTypeEnum(isFile ? KVValueTypeEnum.FILE : KVValueTypeEnum.KEYWORD);
         return result;
     }
 
@@ -153,5 +154,18 @@ public class ResponseService {
         routerTable.knowNode(clientId, clientIp, clientPort, true);
 
         return new PingResult();
+    }
+
+    /*
+     *   NODE_JOIN
+     */
+    public NodeJoinResult nodeJoin(HashCode160 clientId, String clientIp, String clientPort) {
+        NodeJoinResult result = new NodeJoinResult();
+        result.setNearNodes(routerTable.getNearNodes(clientId));
+        routerTable.knowNode(clientId, clientIp, clientPort, true);
+
+        result.setFileKV(fileIndexContainer.getDataForNewNode(clientId));
+        result.setKeywordKV(keywordIndexContainer.getDataForNewNode(clientId));
+        return result;
     }
 }

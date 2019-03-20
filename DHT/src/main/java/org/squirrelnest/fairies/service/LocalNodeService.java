@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.squirrelnest.fairies.domain.HashCode160;
+import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.storage.datasource.interfaces.DataSource;
 import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
 import org.squirrelnest.fairies.utils.HashUtils;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class LocalNodeService {
 
     private static final String NODE_ID_KEY = "localNodeId";
+    private static final String STARTER_KEY = "starterNodeAddress";
 
     private static final String PARAM_KEY_ID = "nodeId";
     private static final String PARAM_KEY_IP = "nodeIp";
@@ -31,6 +33,9 @@ public class LocalNodeService {
     @Value("${server.port}")
     private String localPort;
 
+    @Value("${fairies.dht.presetNode}")
+    private String presetAddress;
+
     @Resource(name = "localStorageDAO")
     private DataSource localStore;
 
@@ -39,14 +44,14 @@ public class LocalNodeService {
         try {
             localId = localStore.load(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE.getTypeName(), NODE_ID_KEY, HashCode160.class);
         } catch (Exception e) {
-            LOGGER.error("Load local storage failed, nested local key is " + NODE_ID_KEY, e);
+            LOGGER.error("Load meta storage failed, nested meta key is " + NODE_ID_KEY, e);
         }
         if (localId == null) {
             localId = HashUtils.generateLocalHash();
             try {
                 localStore.save(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE.getTypeName(), NODE_ID_KEY, localId);
             } catch (Exception e) {
-                LOGGER.error("save local storage failed, nested local key is " + NODE_ID_KEY, e);
+                LOGGER.error("save meta storage failed, nested meta key is " + NODE_ID_KEY, e);
             }
         }
         return localId;
@@ -65,8 +70,36 @@ public class LocalNodeService {
             InetAddress address = InetAddress.getLocalHost();
             return address.getHostAddress();
         } catch (Exception e) {
-            LOGGER.error("Cannot get local host ip!", e);
+            LOGGER.error("Cannot get meta host ip!", e);
             return null;
+        }
+    }
+
+    public Record getStarterNode() {
+        String starterAddress = null;
+        try {
+            starterAddress = localStore.load(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE.getTypeName(),
+                    STARTER_KEY, String.class);
+        } catch (Exception e) {
+            LOGGER.error("Load meta storage failed, nested meta key is " + STARTER_KEY, e);
+        }
+        if (starterAddress == null) {
+            starterAddress = presetAddress;
+        }
+        Record record = new Record();
+        record.setNodeIp(starterAddress.split(":")[0]);
+        record.setNodePort(starterAddress.split(":")[1]);
+        return record;
+    }
+
+    public boolean setStarterNode(String ip, String port) {
+        try {
+            localStore.save(LocalStorageTypeEnum.OTHER_LOCAL_STORAGE.getTypeName(), STARTER_KEY,
+                    ip + ":" + port);
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Save meta storage failed, nested meta key is " + STARTER_KEY, e);
+            return false;
         }
     }
 }

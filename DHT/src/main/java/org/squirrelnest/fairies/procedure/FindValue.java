@@ -32,16 +32,16 @@ public class FindValue extends AbstractProcedure<FindValueResult> {
     private final ExecutorService threadPool;
     private final KVValueTypeEnum typeEnum;
 
-    private List<Record> startNodes;
+    private final List<Record> startNodes;
     private Set<Decorator<Record>> proceedNodes = new HashSet<>(16);
     private Decorator<Record> nodeWithValue = null;
 
     private int lastMinDistance;
 
-    public FindValue(HashCode160 localId, HashCode160 targetId,
+    public FindValue(HashCode160 targetId,
                      int k, int alpha, int requestTimeoutMs, KVValueTypeEnum typeEnum,
                      RouterTable routerTable, RequestSendService sendService) {
-        super(localId, targetId, k, alpha, requestTimeoutMs, routerTable, sendService);
+        super(targetId, k, alpha, requestTimeoutMs, routerTable, sendService);
         this.typeEnum = typeEnum;
         startNodes = routerTable.getNearNodes(targetId);
         threadPool = new ThreadPoolExecutor(this.alpha, this.alpha * 4,
@@ -108,9 +108,6 @@ public class FindValue extends AbstractProcedure<FindValueResult> {
 
     @SuppressWarnings("unchecked")
     private void queryOneNode(Decorator<Record> receiver, Inform<Boolean> informer) {
-        if (receiver.getData().getNodeId().equals(localId)) {
-            return;
-        }
         CallableWithInform<List<Record>, Boolean> task = new CallableWithInform<List<Record>, Boolean>() {
             @Override
             public List<Record> originCall() throws Exception {

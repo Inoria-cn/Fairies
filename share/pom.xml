@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>org.squirrelnest.fairies</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>DHT</artifactId>
             <version>1.0.0</version>
         </dependency>
     </dependencies>

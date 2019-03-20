@@ -3,6 +3,7 @@ package org.squirrelnest.fairies.kvpairs.file.model;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.squirrelnest.fairies.domain.HashCode160;
+import org.squirrelnest.fairies.domain.Record;
 
 import java.util.List;
 
@@ -11,12 +12,38 @@ import java.util.List;
  */
 public class FileValue {
 
+    /**
+     * 文件名
+     */
     private String name;
-    private List<HashCode160> holders;
+    /**
+     * 持有该文件的全部或一部分的节点的id
+     */
+    private List<Record> holders;
+    /**
+     * 该文件的所有关键字
+     */
     private List<String> keywords;
-    private HashCode160 lastSourceNodeId;
+    /**
+     * id,由文件整体的sha1-md5组成
+     */
+    private HashCode160 id;
+    /**
+     * 文件字节数
+     */
+    private Integer size;
+    /**
+     * 分片大小
+     */
+    private Integer sliceSize;
+    /**
+     * 上次收到该value的存储消息的时间
+     */
     private Long lastUpdateTime;
-    //转发不会修改该字段，主动发布时会，以保证系统中数据的时效性。
+    /**
+     * 过期时间
+     * 转发不会修改该字段，主动发布时会，以保证系统中数据的时效性。
+     */
     private Long expireTimestamp;
 
     /*
@@ -30,11 +57,11 @@ public class FileValue {
         this.name = name;
     }
 
-    public List<HashCode160> getHolders() {
+    public List<Record> getHolders() {
         return holders;
     }
 
-    public void setHolders(List<HashCode160> holders) {
+    public void setHolders(List<Record> holders) {
         this.holders = holders;
     }
 
@@ -46,12 +73,28 @@ public class FileValue {
         this.keywords = keywords;
     }
 
-    public HashCode160 getLastSourceNodeId() {
-        return lastSourceNodeId;
+    public HashCode160 getId() {
+        return id;
     }
 
-    public void setLastSourceNodeId(HashCode160 lastSourceNodeId) {
-        this.lastSourceNodeId = lastSourceNodeId;
+    public void setId(HashCode160 id) {
+        this.id = id;
+    }
+
+    public Integer getSize() {
+        return size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+
+    public Integer getSliceSize() {
+        return sliceSize;
+    }
+
+    public void setSliceSize(Integer sliceSize) {
+        this.sliceSize = sliceSize;
     }
 
     public Long getLastUpdateTime() {

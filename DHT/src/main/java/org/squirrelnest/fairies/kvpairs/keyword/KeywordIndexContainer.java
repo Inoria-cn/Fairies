@@ -5,17 +5,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.squirrelnest.fairies.domain.HashCode160;
+import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.kvpairs.keyword.model.File;
 import org.squirrelnest.fairies.kvpairs.keyword.model.KeywordValue;
 import org.squirrelnest.fairies.service.LocalNodeService;
 import org.squirrelnest.fairies.storage.datasource.interfaces.DataSource;
 import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
+import org.squirrelnest.fairies.utils.MapBuilder;
 import org.squirrelnest.fairies.utils.TimeUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,6 +31,9 @@ public class KeywordIndexContainer {
 
     @Value("${fairies.dht.republish.cancelMs}")
     private Long leastRepublishMs;
+
+    @Value("${fairies.dht.expireTime}")
+    private Long maxExpireTime;
 
     @Resource(name = "localStorageDAO")
     private DataSource localStorage;
@@ -46,7 +52,7 @@ public class KeywordIndexContainer {
     }
 
     @PreDestroy
-    private void gentleDestroy() {
+    private void gentleShutdown() {
         backup();
     }
 
@@ -86,6 +92,12 @@ public class KeywordIndexContainer {
             return true;
         }
         return false;
+    }
+
+    public void refreshPutAll(Map<HashCode160, KeywordValue> newValues) {
+        for(Map.Entry<HashCode160, KeywordValue> entry : newValues.entrySet()) {
+            refreshPut(entry.getKey(), entry.getValue());
+        }
     }
 
     /**
@@ -138,7 +150,7 @@ public class KeywordIndexContainer {
             keywordData = localStorage.load(LocalStorageTypeEnum.DHT_KEYWORD_PAIRS.getTypeName(), null, Map.class);
             return true;
         } catch (Exception e) {
-            LOGGER.error("Read keyword data from local storage raised an error.", e);
+            LOGGER.error("Read keyword data from meta storage raised an error.", e);
             return false;
         }
     }
@@ -149,8 +161,18 @@ public class KeywordIndexContainer {
             localStorage.save(LocalStorageTypeEnum.DHT_KEYWORD_PAIRS.getTypeName(), null, keywordData);
             return true;
         } catch (Exception e) {
-            LOGGER.error("Backup keyword data to local storage raised an error.", e);
+            LOGGER.error("Backup keyword data to meta storage raised an error.", e);
             return false;
         }
+    }
+
+    public Map<HashCode160, Long> getExpireTimeMap(HashCode160 dataId, List<Record> cacheNodes) {
+        MapBuilder<HashCode160, Long> builder = new MapBuilder<>();
+        Long now = System.currentTimeMillis();
+        for(Record node : cacheNodes) {
+            Long expireTime = (long)(now + maxExpireTime / Math.pow(dataId.calculateDistance(node.getNodeId()), 0.5));
+            builder.addField(node.getNodeId(), expireTime);
+        }
+        return builder.build();
     }
 }

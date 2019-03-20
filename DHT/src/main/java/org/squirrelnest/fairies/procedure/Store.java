@@ -35,7 +35,7 @@ public class Store extends AbstractProcedure<Map<HashCode160, Boolean>> {
     public Store(int k, int alpha, int requestTimeoutMs, KVValueTypeEnum typeEnum,
                  List<Record> targets, Map<HashCode160, Long> expireTimeMap, Object data, HashCode160 keyId, String keyword,
                  RouterTable routerTable, RequestSendService sendService) {
-        super(null, null, k, alpha, requestTimeoutMs, routerTable, sendService);
+        super(null, k, alpha, requestTimeoutMs, routerTable, sendService);
         this.typeEnum = typeEnum;
         this.storeTargetNodes = targets;
         this.id2ExpireTime = expireTimeMap == null ? new HashMap<>(4) : expireTimeMap;

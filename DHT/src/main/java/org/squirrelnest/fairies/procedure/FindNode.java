@@ -24,6 +24,7 @@ public class FindNode extends AbstractProcedure<List<Record>> {
     final static String DECORATE_KEY_RESPONSE = "response";
 
     private final ExecutorService threadPool;
+    private final HashCode160 localId;
 
     private List<Record> startNodes;
     private Set<Decorator<Record>> proceedNodes = new HashSet<>(16);
@@ -32,7 +33,8 @@ public class FindNode extends AbstractProcedure<List<Record>> {
 
     public FindNode(HashCode160 localId, HashCode160 targetId, int k, int alpha, int requestTimeoutMs,
                     RouterTable routerTable, RequestSendService sendService) {
-        super(localId, targetId, k, alpha, requestTimeoutMs, routerTable, sendService);
+        super(targetId, k, alpha, requestTimeoutMs, routerTable, sendService);
+        this.localId = localId;
         startNodes = routerTable.getNearNodes(targetId);
         threadPool = new ThreadPoolExecutor(this.alpha, this.alpha * 4,
                 3, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
@@ -47,7 +49,7 @@ public class FindNode extends AbstractProcedure<List<Record>> {
     public List<Record> execute() {
 
         Inform<Boolean> informer = new OneResponseInform();
-        proceedNodes = Decorator.decoratorSet(new HashSet<>(startNodes));
+        proceedNodes.addAll(Decorator.decoratorSet(new HashSet<>(startNodes)));
 
         //多线程连续查询主要逻辑
         while(true) {

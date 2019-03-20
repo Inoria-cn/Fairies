@@ -16,6 +16,11 @@ public enum LocalStorageTypeEnum {
     DHT_FILE_LOCATION_PAIRS("fileLocationPairs", "DHTFileLocationPairs.fairies"),
 
     /**
+     * DHT网络路由表
+     */
+    DHT_ROUTER_TABLE("routerTable", "DHTRouterTable.fairies"),
+
+    /**
      * 本机发布的文件的信息
      */
     LOCAL_SHARE_FILE("localShareFile", "localShareFile.fairies"),

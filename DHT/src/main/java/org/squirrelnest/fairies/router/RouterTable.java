@@ -1,5 +1,8 @@
 package org.squirrelnest.fairies.router;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.squirrelnest.fairies.domain.Record;
@@ -8,10 +11,13 @@ import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.procedure.FindNode;
 import org.squirrelnest.fairies.service.LocalNodeService;
 import org.squirrelnest.fairies.service.RequestSendService;
+import org.squirrelnest.fairies.storage.datasource.interfaces.DataSource;
+import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
 import org.squirrelnest.fairies.thread.GlobalThreadService;
 import org.squirrelnest.fairies.utils.TimeUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +28,8 @@ import java.util.List;
  */
 @Component
 public class RouterTable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RouterTable.class);
 
     @Value("${fairies.dht.k}")
     private int kSize;
@@ -56,7 +64,10 @@ public class RouterTable {
     @Resource
     private LocalNodeService localNodeService;
 
-    private final List<Bucket> kBuckets;
+    @Resource(name = "localStorageDAO")
+    private DataSource localStorage;
+
+    private List<Bucket> kBuckets;
 
     private HashCode160 localId;
 
@@ -67,9 +78,23 @@ public class RouterTable {
     @PostConstruct
     private void init() {
         this.localId = localNodeService.getLocalNodeId();
-        for(int i = 0; i < 160; i++) {
-            kBuckets.add(new Bucket(this.localId, kSize, copySize, maxNoResponse));
-        }
+        boolean loadResult = loadFromBackup();
+
+        if (!loadResult || kBuckets == null) {
+            kBuckets = new ArrayList<>(16);
+            for(int i = 0; i < 160; i++) {
+                kBuckets.add(new Bucket(this.localId, kSize, copySize, maxNoResponse));
+            }
+        };
+    }
+
+    @PreDestroy
+    private void gentleShutdown() {
+        backup();
+    }
+
+    public Boolean isEmpty() {
+        return CollectionUtils.isEmpty(kBuckets);
     }
 
     /**
@@ -80,7 +105,7 @@ public class RouterTable {
     public List<Record> getNearNodes(HashCode160 target) {
         int index = findBucketIndex(target);
         if (index < 0) {
-            throw new GetNodeException("Target node is same as local node!");
+            throw new GetNodeException("Target node is same as meta node!");
         }
         int foundNodeCount = 0;
         List<Record> result = new ArrayList<>(kSize);
@@ -101,7 +126,7 @@ public class RouterTable {
     }
 
     private int findBucketIndex(HashCode160 id) {
-        if (localId.equals(id)) {
+        if (localId.equals(id) || id == null) {
             return -1;
         }
         return 159 - localId.calculateDistance(id);
@@ -156,8 +181,30 @@ public class RouterTable {
                 Record forRefresh = bucket.getOneNodeForRefresh();
                 FindNode findNode = new FindNode(localId, forRefresh.getNodeId(),
                         kSize, alpha, requestTimeout, this, requestSendService);
-                globalThreadService.makeItRum(() -> findNode.execute());
+                globalThreadService.makeItRun(() -> findNode.execute());
             }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean loadFromBackup() {
+        try {
+            kBuckets = localStorage.load(LocalStorageTypeEnum.DHT_ROUTER_TABLE.getTypeName(), null, List.class);
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Read router table from meta storage raised an error.", e);
+            return false;
+        }
+    }
+
+
+    public boolean backup() {
+        try {
+            localStorage.save(LocalStorageTypeEnum.DHT_ROUTER_TABLE.getTypeName(), null, kBuckets);
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Backup router table to meta storage raised an error.", e);
+            return false;
         }
     }
 }

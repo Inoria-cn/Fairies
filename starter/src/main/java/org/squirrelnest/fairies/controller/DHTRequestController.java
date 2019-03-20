@@ -9,10 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.squirrelnest.fairies.domain.HashCode160;
-import org.squirrelnest.fairies.dto.FindNodeResult;
-import org.squirrelnest.fairies.dto.FindValueResult;
-import org.squirrelnest.fairies.dto.PingResult;
-import org.squirrelnest.fairies.dto.StoreResult;
+import org.squirrelnest.fairies.dto.*;
 import org.squirrelnest.fairies.service.ResponseService;
 import org.squirrelnest.fairies.utils.RequestUtils;
 
@@ -116,6 +113,22 @@ public class DHTRequestController {
         }
 
         PingResult result = responseService.ping(id, checkedIp, nodePort);
+        return JSON.toJSONString(result);
+    }
+
+    @GetMapping("/nodeJoin")
+    public String handleNodeJoin(@RequestParam String nodeId,
+                             @RequestParam String nodeIp,
+                             @RequestParam String nodePort,
+                             HttpServletRequest request) {
+        HashCode160 id = HashCode160.parseString(nodeId);
+
+        String checkedIp = checkAndGetIp(nodeIp, request);
+        if (StringUtils.isBlank(checkedIp)) {
+            return null;
+        }
+
+        NodeJoinResult result = responseService.nodeJoin(id, checkedIp, nodePort);
         return JSON.toJSONString(result);
     }
 }

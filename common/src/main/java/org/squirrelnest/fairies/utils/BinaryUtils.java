@@ -38,6 +38,19 @@ public class BinaryUtils {
         return Integer.parseInt(binaryChar + "");
     }
 
+    public static byte setDigit(byte origin, int index, boolean newBit) {
+
+        boolean oldBit = getBinaryDigit(origin, index) > 0;
+        int bitIntValue = Math.round((float)Math.pow(2, index));
+        int newValue = origin & 0xff;
+        if(oldBit && !newBit) {
+            newValue -= bitIntValue;
+        } else if(!oldBit && newBit) {
+            newValue += bitIntValue;
+        }
+        return (byte)(newValue & 0xff);
+    }
+
     public static int findMaxSamePrefixLength(byte a, byte b) {
         int length = 8;
         int aValue = a, bValue = b;

@@ -53,7 +53,7 @@ public class LocalStorageDAO implements DataSource {
         if (!file.exists()) {
             boolean success = file.createNewFile();
             if (!success) {
-                String errorMessage = "local storage backup file create failed, related file name is " + typeEnum.getFileName();
+                String errorMessage = "meta storage backup file create failed, related file name is " + typeEnum.getFileName();
                 LOGGER.error(errorMessage);
                 throw new Exception(errorMessage);
             }
@@ -70,7 +70,7 @@ public class LocalStorageDAO implements DataSource {
     private <T> T loadBackup(LocalStorageTypeEnum typeEnum, Class<T> valueClass) throws Exception {
         File file = getBackupFile(typeEnum);
         if (!file.exists()) {
-            String errorMessage = "local storage backup file can not find, related file name is " + typeEnum.getFileName();
+            String errorMessage = "meta storage backup file can not find, related file name is " + typeEnum.getFileName();
             LOGGER.error(errorMessage);
             return null;
         }

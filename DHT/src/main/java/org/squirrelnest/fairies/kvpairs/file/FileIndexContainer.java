@@ -86,6 +86,12 @@ public class FileIndexContainer {
         return false;
     }
 
+    public void refreshPutAll(Map<HashCode160, FileValue> newValues) {
+        for(Map.Entry<HashCode160, FileValue> entry : newValues.entrySet()) {
+            refreshPut(entry.getKey(), entry.getValue());
+        }
+    }
+
     public Map<HashCode160, FileValue> getAllData() {
         return fileData;
     }
@@ -140,7 +146,7 @@ public class FileIndexContainer {
             localStorage.save(LocalStorageTypeEnum.DHT_FILE_LOCATION_PAIRS.getTypeName(), null, fileData);
             return true;
         } catch (Exception e) {
-            LOGGER.error("Backup to local storage failed.", e);
+            LOGGER.error("Backup to meta storage failed.", e);
             return false;
         }
     }
@@ -151,7 +157,7 @@ public class FileIndexContainer {
             fileData = localStorage.load(LocalStorageTypeEnum.DHT_FILE_LOCATION_PAIRS.getTypeName(), null, Map.class);
             return true;
         } catch (Exception e) {
-            LOGGER.error("Read file data from local storage raised an error.", e);
+            LOGGER.error("Read file data from meta storage raised an error.", e);
             return false;
         }
     }
