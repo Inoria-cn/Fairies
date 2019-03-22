@@ -1,10 +1,16 @@
-package org.squirrelnest.fairies.common.enumeration;
+package org.squirrelnest.fairies.local.enumeration;
+
+import java.util.Arrays;
 
 /**
  * Created by Inoria on 2019/3/20.
  */
-public enum FileState {
+public enum FileStateEnum {
 
+    /**
+     * 新通过dht得到的文件，但还未持有数据
+     */
+    NEW,
     /**
      * 由我提供的文件
      */
@@ -20,6 +26,5 @@ public enum FileState {
     /**
      * 未下载完成但暂停下载的文件
      */
-    PAUSED
-
+    PAUSED;
 }

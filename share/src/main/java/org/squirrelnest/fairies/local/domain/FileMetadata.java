@@ -1,17 +1,21 @@
-package org.squirrelnest.fairies.common.domain;
+package org.squirrelnest.fairies.local.domain;
 
-import org.squirrelnest.fairies.common.enumeration.FileState;
+import org.squirrelnest.fairies.domain.Record;
+import org.squirrelnest.fairies.local.enumeration.FileStateEnum;
+import org.squirrelnest.fairies.share.dto.SliceBitmap;
 import org.squirrelnest.fairies.common.exception.SliceSizeInvalidException;
 import org.squirrelnest.fairies.common.utils.MathUtils;
 import org.squirrelnest.fairies.domain.HashCode160;
+
+import java.util.Map;
+
+import static org.squirrelnest.fairies.service.ConfigReadService.PIECE_SIZE;
 
 /**
  * 本地所拥有或拥有一部分的文件的信息记录
  * Created by Inoria on 2019/3/20.
  */
 public class FileMetadata {
-
-    public static final int MIN_SLICE_SIZE = 16 * 1024;
 
     /**
      * 文件整体的hashcode160
@@ -28,11 +32,11 @@ public class FileMetadata {
     /**
      * 文件状态
      */
-    private FileState state;
+    private FileStateEnum state;
     /**
      * 文件分片的拥有情况
      */
-    private SliceBitmap slices;
+    private SliceDetail slices;
     /**
      * 分片大小，取值必须是16KB * 2^n
      */
@@ -41,6 +45,10 @@ public class FileMetadata {
      * 最近修改时间
      */
     private Long updateTime;
+    /**
+     * 文件持有者和对应的分片持有状态
+     */
+    private Map<Record, SliceBitmap> holders;
 
     public HashCode160 getId() {
         return id;
@@ -66,19 +74,19 @@ public class FileMetadata {
         this.path = path;
     }
 
-    public FileState getState() {
+    public FileStateEnum getState() {
         return state;
     }
 
-    public void setState(FileState state) {
+    public void setState(FileStateEnum state) {
         this.state = state;
     }
 
-    public SliceBitmap getSlices() {
+    public SliceDetail getSlices() {
         return slices;
     }
 
-    public void setSlices(SliceBitmap slices) {
+    public void setSlices(SliceDetail slices) {
         this.slices = slices;
     }
 
@@ -87,7 +95,7 @@ public class FileMetadata {
     }
 
     public void setSliceSize(Integer sliceSize) {
-        if (!MathUtils.is2PowerN(sliceSize / MIN_SLICE_SIZE)) {
+        if (!MathUtils.is2PowerN(sliceSize / PIECE_SIZE)) {
             throw new SliceSizeInvalidException();
         }
         this.sliceSize = sliceSize;
@@ -99,6 +107,14 @@ public class FileMetadata {
 
     public void setUpdateTime(Long updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Map<Record, SliceBitmap> getHolders() {
+        return holders;
+    }
+
+    public void setHolders(Map<Record, SliceBitmap> holders) {
+        this.holders = holders;
     }
 
     @Override

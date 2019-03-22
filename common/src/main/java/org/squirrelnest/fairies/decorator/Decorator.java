@@ -50,6 +50,16 @@ public class Decorator<T> extends HashMap<String, Object> {
         }
     }
 
+    public static <E> Decorator<E> findDecorated(Collection<Decorator<E>> collection, E core) {
+        Decorator<E> decoratedNew = new Decorator<E>(core);
+        for(Decorator<E> decorator : collection) {
+            if (decorator.equals(decoratedNew)) {
+                return decorator;
+            }
+        }
+        return null;
+    }
+
     /**
      * 对decorator进行比较和hash的时候，只比较其中包装的值，注解kv信息不参与比较
      */

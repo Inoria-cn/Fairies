@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.domain.Record;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,6 +46,17 @@ public class FileValue {
      * 转发不会修改该字段，主动发布时会，以保证系统中数据的时效性。
      */
     private Long expireTimestamp;
+
+    public FileValue(FileValue that) {
+        setId(that.getId());
+        setName(that.getName());
+        setSize(that.getSize());
+        setSliceSize(that.getSliceSize());
+        setLastUpdateTime(that.getLastUpdateTime());
+        setExpireTimestamp(that.getExpireTimestamp());
+        setHolders(new ArrayList<>(that.getHolders()));
+        setKeywords(new ArrayList<>(that.getKeywords()));
+    }
 
     /*
      * 发布文件时，需要发布文件所有者为自己。下载文件时，如果所有者无法连接，则发送STORE消息更新所有者列表，删除无效节点并加上自己。
@@ -112,4 +124,6 @@ public class FileValue {
     public void setExpireTimestamp(Long expireTimestamp) {
         this.expireTimestamp = expireTimestamp;
     }
+
+
 }

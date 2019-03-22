@@ -57,6 +57,14 @@ public class LocalNodeService {
         return localId;
     }
 
+    public Record getLocalNodeRecord() {
+        Record record = new Record();
+        record.setNodeId(getLocalNodeId());
+        record.setNodeIp(getLocalIp());
+        record.setNodePort(localPort);
+        return record;
+    }
+
     public Map<String, String> getLocalAddressParams() {
         Map<String, String> result = new HashMap<>(8);
         result.put(PARAM_KEY_ID, getLocalNodeId().toString());

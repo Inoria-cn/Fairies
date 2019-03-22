@@ -1,9 +1,9 @@
-package org.squirrelnest.fairies.meta;
+package org.squirrelnest.fairies.local.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.squirrelnest.fairies.common.domain.FileMetadata;
+import org.squirrelnest.fairies.local.domain.FileMetadata;
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.storage.datasource.interfaces.DataSource;
 import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
@@ -18,9 +18,9 @@ import java.util.Map;
  * Created by Inoria on 2019/3/20.
  */
 @Component
-public class LocalFileMetadataContainer {
+public class LocalFileInfoService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocalFileMetadataContainer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalFileInfoService.class);
 
     @Resource(name = "localStorageDAO")
     private DataSource localStorage;
@@ -40,6 +40,14 @@ public class LocalFileMetadataContainer {
         backup();
     }
 
+
+    public boolean fileExist(HashCode160 id) {
+        return data.containsKey(id);
+    }
+
+    public FileMetadata getFileData(HashCode160 id) {
+        return data.get(id);
+    }
 
 
     /**

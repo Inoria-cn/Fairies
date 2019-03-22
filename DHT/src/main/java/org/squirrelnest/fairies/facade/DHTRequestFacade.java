@@ -14,8 +14,10 @@ import org.squirrelnest.fairies.kvpairs.keyword.model.KeywordValue;
 import org.squirrelnest.fairies.procedure.FindValue;
 import org.squirrelnest.fairies.procedure.Store;
 import org.squirrelnest.fairies.router.RouterTable;
+import org.squirrelnest.fairies.service.ConfigReadService;
+import org.squirrelnest.fairies.service.LocalNodeService;
 import org.squirrelnest.fairies.service.RequestSendService;
-import org.squirrelnest.fairies.thread.GlobalThreadService;
+import org.squirrelnest.fairies.service.GlobalThreadService;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -30,14 +32,8 @@ import java.util.Map;
 @Service
 public class DHTRequestFacade {
 
-    @Value("${fairies.dht.k}")
-    private Integer k;
-
-    @Value("${fairies.dht.alpha}")
-    private Integer alpha;
-
-    @Value("${fairies.dht.request.timeout}")
-    private Integer timeout;
+    @Resource
+    private ConfigReadService configReadService;
 
     @Resource
     private RouterTable routerTable;
@@ -51,11 +47,19 @@ public class DHTRequestFacade {
     @Resource
     private GlobalThreadService globalThreadService;
 
+    @Resource
+    private LocalNodeService localNodeService;
+
+    public Record getLocalRecord() {
+        return localNodeService.getLocalNodeRecord();
+    }
+
     @SuppressWarnings("unchecked")
     public List<File> getFilesByKeyword(String keyword) {
         HashCode160 wordHash = HashCode160.newInstance(keyword);
-        FindValue findValue = new FindValue(wordHash, k, alpha, timeout, KVValueTypeEnum.KEYWORD,
-                routerTable, requestSendService);
+        FindValue findValue = new FindValue(wordHash, configReadService.getDHTParamK()
+                , configReadService.getDHTParamAlpha(), configReadService.getDHTRequestTimeout(),
+                KVValueTypeEnum.KEYWORD, routerTable, requestSendService);
         findValue.execute();
         FindValueResult result = findValue.getTargetTypeResult(FindValueResult.class);
         if(!result.getValueFound()) {
@@ -66,7 +70,8 @@ public class DHTRequestFacade {
         if(CollectionUtils.isNotEmpty(cacheRecords)) {
             Map<HashCode160, Long> expireTimeMap = keywordIndexContainer.getExpireTimeMap(wordHash, cacheRecords);
             globalThreadService.makeItRun(() -> {
-                Store cacheStore = new Store(k, alpha, timeout, KVValueTypeEnum.KEYWORD, cacheRecords,
+                Store cacheStore = new Store(configReadService.getDHTParamK(), configReadService.getDHTParamAlpha(),
+                        configReadService.getDHTRequestTimeout(), KVValueTypeEnum.KEYWORD, cacheRecords,
                         expireTimeMap, value, wordHash, keyword, routerTable, requestSendService);
                 cacheStore.execute();
             });
@@ -77,14 +82,28 @@ public class DHTRequestFacade {
 
     @SuppressWarnings("unchecked")
     public FileValue getFileInfoById(HashCode160 fileId, List<Record> nearestNodesContainer) {
-        FindValue findValue = new FindValue(fileId, k, alpha, timeout, KVValueTypeEnum.FILE,
-                routerTable, requestSendService);
+        FindValue findValue = new FindValue(fileId, configReadService.getDHTParamK(), configReadService.getDHTParamAlpha(),
+                configReadService.getDHTRequestTimeout(), KVValueTypeEnum.FILE, routerTable, requestSendService);
         FindValueResult result = findValue.execute();
-        nearestNodesContainer.addAll(result.getNearerNodes());
+        if (nearestNodesContainer != null) {
+            nearestNodesContainer.addAll(result.getNearerNodes());
+        }
         if(!result.getValueFound()) {
             return null;
         }
-        FileValue value = (FileValue)result.getValue();
-        return value;
+
+        return (FileValue)result.getValue();
+    }
+
+    public void asyncUpdateFileHolders(List<Record> targetNodes, FileValue oldValue, List<Record> newHolders) {
+        globalThreadService.makeItRun(() -> {
+            FileValue newValue = new FileValue(oldValue);
+            newValue.setHolders(newHolders);
+            newValue.setExpireTimestamp(System.currentTimeMillis() + configReadService.getDHTKVValueExpireTime());
+            Store fileValueUpdate = new Store(configReadService.getDHTParamK(), configReadService.getDHTParamAlpha(),
+                    configReadService.getDHTRequestTimeout(), KVValueTypeEnum.FILE, targetNodes,
+                    null, newValue, oldValue.getId(), null, routerTable, requestSendService);
+            fileValueUpdate.execute();
+        });
     }
 }

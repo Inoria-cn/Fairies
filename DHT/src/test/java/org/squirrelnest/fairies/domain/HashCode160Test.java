@@ -24,4 +24,20 @@ public class HashCode160Test {
         o(deSerialized);
         o(HashCode160.parseString("qUqP5cyxm6YcTAhz05Hph5gvu9M="));
     }
+
+    public static void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
+
+    @Test
+    public void screenTest() throws Exception{
+        o("**********");
+        o("**********");
+        o("**********");
+        o("**********");
+        o("**********");
+        Thread.sleep(1000);
+        clearScreen();
+    }
 }

@@ -13,7 +13,7 @@ import org.squirrelnest.fairies.service.LocalNodeService;
 import org.squirrelnest.fairies.service.RequestSendService;
 import org.squirrelnest.fairies.storage.datasource.interfaces.DataSource;
 import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
-import org.squirrelnest.fairies.thread.GlobalThreadService;
+import org.squirrelnest.fairies.service.GlobalThreadService;
 import org.squirrelnest.fairies.utils.TimeUtils;
 
 import javax.annotation.PostConstruct;

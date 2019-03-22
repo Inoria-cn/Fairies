@@ -64,4 +64,24 @@ public class BinaryUtils {
         }
         return 0;
     }
+
+    public static byte[] getByteArrayFromBooleanArray(boolean[] source) {
+        if (source == null || source.length == 0) {
+            return new byte[0];
+        }
+        byte[] result = new byte[(source.length - 1) / 8 + 1];
+        int byteValueSum = 0;
+        for(int i = 0; i < source.length; i++) {
+            int indexInByte = i % 8;
+            if(source[i]) {
+                byteValueSum += Math.pow(2, indexInByte);
+            }
+            if(indexInByte == 7 || i == source.length - 1) {
+                int indexInArray = i / 8;
+                result[indexInArray] = (byte)(byteValueSum & 0xff);
+                byteValueSum = 0;
+            }
+        }
+        return result;
+    }
 }

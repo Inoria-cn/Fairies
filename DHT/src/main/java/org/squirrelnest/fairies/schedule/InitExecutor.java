@@ -9,7 +9,7 @@ import org.squirrelnest.fairies.procedure.NodeJoin;
 import org.squirrelnest.fairies.router.RouterTable;
 import org.squirrelnest.fairies.service.LocalNodeService;
 import org.squirrelnest.fairies.service.RequestSendService;
-import org.squirrelnest.fairies.thread.GlobalThreadService;
+import org.squirrelnest.fairies.service.GlobalThreadService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;

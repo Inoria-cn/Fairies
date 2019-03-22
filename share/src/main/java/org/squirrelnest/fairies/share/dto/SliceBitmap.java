@@ -1,18 +1,19 @@
-package org.squirrelnest.fairies.common.domain;
+package org.squirrelnest.fairies.share.dto;
 
 import org.squirrelnest.fairies.common.exception.BitmapOutOfIndexException;
 import org.squirrelnest.fairies.utils.BinaryUtils;
 
 /**
+ * Used in network request for status of having slices.
  * Created by Inoria on 2019/3/20.
  */
 public class SliceBitmap {
 
-    private Byte[] bits;
+    private byte[] bits;
 
     private Integer bitLength;
 
-    public SliceBitmap(Byte[] bits, int length) {
+    public SliceBitmap(byte[] bits, int length) {
         this.bits = bits;
         this.bitLength = length;
     }
@@ -40,11 +41,11 @@ public class SliceBitmap {
      * Getters and setters below is only for serialize.
      *
      */
-    Byte[] getBits() {
+    byte[] getBits() {
         return bits;
     }
 
-    void setBits(Byte[] bits) {
+    void setBits(byte[] bits) {
         this.bits = bits;
     }
 
