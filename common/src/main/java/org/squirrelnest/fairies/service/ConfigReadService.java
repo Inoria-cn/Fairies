@@ -23,6 +23,19 @@ public class ConfigReadService {
     @Value("${fairies.dht.request.timeout}")
     private Integer dhtRequestTimeout;
 
+    @Value("${fairies.download.threadCount}")
+    private Integer downloadThreadCount;
+
+    @Value("${fairies.download.multiTask}")
+    private Integer downloadMultiTaskCount;
+
+    @Value("${fairies.download.pieceTimeout}")
+    private Integer downloadPieceTimeout;
+
+    @Value("${fairies.download.maxRetryTimes}")
+    private Integer downloadMaxRetryTimes;
+
+
     public Long getDHTKVValueExpireTime() {
         return dhtKVValueExpireTime;
     }
@@ -37,5 +50,21 @@ public class ConfigReadService {
 
     public Integer getDHTRequestTimeout() {
         return dhtRequestTimeout;
+    }
+
+    public Integer getDownloadThreadCount() {
+        return downloadThreadCount;
+    }
+
+    public Integer getDownloadMultiTaskCount() {
+        return downloadMultiTaskCount;
+    }
+
+    public Integer getDownloadPieceTimeout() {
+        return downloadPieceTimeout;
+    }
+
+    public Integer getDownloadMaxRetryTimes() {
+        return downloadMaxRetryTimes;
     }
 }

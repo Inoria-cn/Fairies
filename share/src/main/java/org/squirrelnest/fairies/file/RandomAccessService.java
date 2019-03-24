@@ -3,6 +3,7 @@ package org.squirrelnest.fairies.file;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.squirrelnest.fairies.domain.HashCode160;
 
 import java.io.RandomAccessFile;
 
@@ -30,5 +31,9 @@ public class RandomAccessService {
             LOGGER.error("Read piece data raised an error in file " + absolutePath, e);
             return null;
         }
+    }
+
+    public HashCode160 getSliceHash(String absolutePath, Integer sliceIndex, Integer sliceSize) {
+        return null;
     }
 }

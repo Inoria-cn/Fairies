@@ -7,6 +7,7 @@ import org.squirrelnest.fairies.common.exception.SliceSizeInvalidException;
 import org.squirrelnest.fairies.common.utils.MathUtils;
 import org.squirrelnest.fairies.domain.HashCode160;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.squirrelnest.fairies.service.ConfigReadService.PIECE_SIZE;
@@ -115,6 +116,25 @@ public class FileMetadata {
 
     public void setHolders(Map<Record, SliceBitmap> holders) {
         this.holders = holders;
+    }
+
+    public void putHolderInfo(Record holder, SliceBitmap sliceBitmap) {
+        this.holders.put(holder, sliceBitmap);
+    }
+
+    public int cleanInvalidHolders(List<Record> latestHolders) {
+        int removedCount = 0;
+        for(Map.Entry<Record, SliceBitmap> entry : holders.entrySet()) {
+            if (!latestHolders.contains(entry.getKey())) {
+                holders.remove(entry.getKey());
+                removedCount++;
+            }
+        }
+        return removedCount;
+    }
+
+    public SliceBitmap getSliceBitmap() {
+        return this.slices.generateBitmap();
     }
 
     @Override

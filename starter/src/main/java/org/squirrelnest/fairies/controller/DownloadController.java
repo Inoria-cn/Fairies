@@ -5,7 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.squirrelnest.fairies.domain.HashCode160;
-import org.squirrelnest.fairies.share.service.ResponseService;
+import org.squirrelnest.fairies.share.network.ResponseService;
 
 
 import javax.annotation.Resource;
@@ -26,5 +26,20 @@ public class DownloadController {
     public String fileData(@RequestParam String fileId) {
         HashCode160 id = HashCode160.parseString(fileId);
         return JSON.toJSONString(responseService.fileInfo(id));
+    }
+
+    @RequestMapping("/piece")
+    public String piece(@RequestParam String fileId,
+                        @RequestParam Integer sliceIndex,
+                        @RequestParam Integer pieceIndex) {
+        HashCode160 id = HashCode160.parseString(fileId);
+        return JSON.toJSONString(responseService.downloadPiece(id, sliceIndex, pieceIndex));
+    }
+
+    @RequestMapping("/sliceHash")
+    public String sliceHash(@RequestParam String fileId,
+                            @RequestParam Integer sliceIndex) {
+        HashCode160 id = HashCode160.parseString(fileId);
+        return JSON.toJSONString(responseService.sliceHash(id, sliceIndex));
     }
 }

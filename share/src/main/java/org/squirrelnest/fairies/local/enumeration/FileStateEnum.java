@@ -27,4 +27,13 @@ public enum FileStateEnum {
      * 未下载完成但暂停下载的文件
      */
     PAUSED;
+
+    public boolean hasFile() {
+        return Arrays.asList(
+                MY_OWN_FILE,
+                DOWNLOAD_FINISHED,
+                DOWNLOADING,
+                PAUSED
+        ).contains(this);
+    }
 }

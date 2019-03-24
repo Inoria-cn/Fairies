@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -17,14 +18,15 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class GlobalThreadService {
 
-    @Value("${fairies.dht.alpha}")
-    private int alpha;
+    @Resource
+    private ConfigReadService configReadService;
 
     private ExecutorService pool;
 
     @PostConstruct
     private void init() {
-        pool = new ThreadPoolExecutor(this.alpha * 4, this.alpha * 8,
+        int alpha = configReadService.getDHTParamAlpha();
+        pool = new ThreadPoolExecutor(alpha * 4, alpha * 8,
                 3, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 

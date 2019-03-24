@@ -12,6 +12,8 @@ public abstract class CallableWithInform<T, I> implements Callable<T> {
 
     private Inform<I> inform;
 
+    private Runnable appendTask;
+
     public abstract T originCall() throws Exception;
 
     @Override
@@ -20,11 +22,18 @@ public abstract class CallableWithInform<T, I> implements Callable<T> {
         if (inform == null) {
             throw new LackInformException();
         }
+        if (appendTask != null) {
+            appendTask.run();
+        }
         inform.inform();
         return result;
     }
 
     public void setInform(Inform<I> inform) {
         this.inform = inform;
+    }
+
+    public void setAppendTask(Runnable task) {
+        this.appendTask = task;
     }
 }

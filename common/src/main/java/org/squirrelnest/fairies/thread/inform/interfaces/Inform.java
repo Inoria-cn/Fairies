@@ -10,6 +10,8 @@ public interface Inform<T> {
      */
     void setState(T state);
 
+    T getState();
+
     void blockUntilState(T targetState, Long maxMilliseconds);
 
     void inform();

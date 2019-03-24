@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Created by Inoria on 2019/3/21.
  */
-public enum SliceStateCodeEnum {
+public enum SliceStateEnum {
     /**
      * 分片未拥有 - 下载中
      */

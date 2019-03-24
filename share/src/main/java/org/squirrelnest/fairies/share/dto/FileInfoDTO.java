@@ -6,7 +6,7 @@ import org.squirrelnest.fairies.local.enumeration.FileStateEnum;
 /**
  * Created by Inoria on 2019/3/20.
  */
-public class FileInfoResult extends AbstractResult {
+public class FileInfoDTO extends AbstractResult {
 
     private SliceBitmap sliceBitmap;
 

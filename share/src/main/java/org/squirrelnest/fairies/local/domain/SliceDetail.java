@@ -1,6 +1,6 @@
 package org.squirrelnest.fairies.local.domain;
 
-import org.squirrelnest.fairies.local.enumeration.SliceStateCodeEnum;
+import org.squirrelnest.fairies.local.enumeration.SliceStateEnum;
 import org.squirrelnest.fairies.share.dto.SliceBitmap;
 import org.squirrelnest.fairies.utils.BinaryUtils;
 
@@ -9,46 +9,66 @@ import org.squirrelnest.fairies.utils.BinaryUtils;
  */
 public class SliceDetail {
 
-    private SliceStateCodeEnum[] sliceStates;
+    private SliceStateEnum[] sliceStates;
 
-    private Integer sliceCount;
+    private final Integer sliceCount;
 
-    private Integer sliceSize;
+    private final Integer sliceSize;
 
-    public SliceStateCodeEnum[] getSliceStates() {
+    public SliceDetail(Integer sliceCount, Integer sliceSize) {
+        this.sliceCount = sliceCount;
+        this.sliceSize = sliceSize;
+    }
+
+    public SliceDetail(SliceStateEnum[] sliceStates, Integer sliceCount, Integer sliceSize) {
+        this(sliceCount, sliceSize);
+        this.sliceStates = sliceStates;
+    }
+
+    public SliceStateEnum[] getSliceStates() {
         return sliceStates;
     }
 
-    public void setSliceStates(SliceStateCodeEnum[] sliceStates) {
+    public void setSliceStates(SliceStateEnum[] sliceStates) {
         this.sliceStates = sliceStates;
+    }
+
+    public SliceStateEnum getSliceState(int index) {
+        return this.sliceStates[index];
+    }
+
+    public synchronized void setSliceState(int index, SliceStateEnum newState) {
+        this.sliceStates[index] = newState;
     }
 
     public Integer getSliceCount() {
         return sliceCount;
     }
 
-    public void setSliceCount(Integer sliceCount) {
-        this.sliceCount = sliceCount;
-    }
-
     public Integer getSliceSize() {
         return sliceSize;
     }
 
-    public void setSliceSize(Integer sliceSize) {
-        this.sliceSize = sliceSize;
-    }
 
     /**
      * @return 是否拥有该文件的数据或者一部分数据
      */
-    public boolean hasFile() {
-        for(SliceStateCodeEnum state : sliceStates) {
-            if(SliceStateCodeEnum.HAVING.equals(state)) {
+    public boolean hasPartFile() {
+        for(SliceStateEnum state : sliceStates) {
+            if(state.haveSlice()) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean hasAllFile() {
+        for (SliceStateEnum state : sliceStates) {
+            if (!state.haveSlice()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public SliceBitmap generateBitmap() {
@@ -58,5 +78,13 @@ public class SliceDetail {
         }
 
         return new SliceBitmap(BinaryUtils.getByteArrayFromBooleanArray(havingStatus), sliceStates.length);
+    }
+
+    public double sliceHoldRate() {
+        int sliceExistCount = 0;
+        for (SliceStateEnum sliceStateCode : sliceStates) {
+            sliceExistCount += sliceStateCode.haveSlice() ? 1 : 0;
+        }
+        return 1.0 * sliceExistCount / sliceCount;
     }
 }

@@ -15,12 +15,23 @@ public class ResponseCountInform implements Inform<Integer> {
     }
 
     @Override
+    public Integer getState() {
+        return this.state;
+    }
+
+    @Override
     public void blockUntilState(Integer targetState, Long maxMs) {
         Long startMs = System.currentTimeMillis();
         while (true) {
             Long currentMs = System.currentTimeMillis();
             if (currentMs - startMs >= maxMs || state >= targetState) {
                 break;
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
+                //do nothing
             }
         }
     }
