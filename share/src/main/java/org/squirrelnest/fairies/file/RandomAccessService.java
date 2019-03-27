@@ -11,6 +11,7 @@ import org.squirrelnest.fairies.local.enumeration.SliceStateEnum;
 import org.squirrelnest.fairies.local.service.LocalFileInfoService;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.io.RandomAccessFile;
 import java.security.MessageDigest;
 
@@ -63,5 +64,17 @@ public class RandomAccessService {
         fileInfoService.getFileData(fileId).getSlices().setSliceState(sliceIndex, SliceStateEnum.LACK_AND_FOUND);
     }
 
-
+    public boolean createFixedSizeFileIfNotExist(File newFile, int fileSize) {
+        if (newFile.exists()) {
+            return true;
+        }
+        try {
+            RandomAccessFile randomAccessFile = new RandomAccessFile(newFile, "rw");
+            randomAccessFile.setLength(fileSize);
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("New file create failed.", e);
+            return false;
+        }
+    }
 }

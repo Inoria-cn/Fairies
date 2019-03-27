@@ -147,6 +147,17 @@ public class FileMetadata {
         return fileValue;
     }
 
+    public static FileMetadata transfer(FileValue fileValue, String folderPath) {
+        FileMetadata fileMetadata = new FileMetadata();
+        fileMetadata.setId(fileValue.getId());
+        fileMetadata.setSliceSize(fileValue.getSliceSize());
+        fileMetadata.setState(FileStateEnum.NEW);
+        fileMetadata.setName(fileValue.getName());
+        fileMetadata.setPath(folderPath + "/" + fileValue.getName());
+        fileMetadata.setSlices(SliceDetail.newInstance(fileValue.getSize(), fileValue.getSliceSize()));
+        return fileMetadata;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

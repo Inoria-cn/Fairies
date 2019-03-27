@@ -19,6 +19,10 @@ public class SliceDetail {
 
     private final Integer sliceSize;
 
+    public static SliceDetail newInstance(Integer fileSize, Integer sliceSize) {
+        return new SliceDetail((fileSize - 1) / sliceSize + 1, sliceSize);
+    }
+
     public SliceDetail(Integer sliceCount, Integer sliceSize) {
         this.sliceCount = sliceCount;
         this.sliceSize = sliceSize;

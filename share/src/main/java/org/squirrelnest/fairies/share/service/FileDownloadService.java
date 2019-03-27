@@ -2,6 +2,7 @@ package org.squirrelnest.fairies.share.service;
 
 import org.springframework.stereotype.Service;
 import org.squirrelnest.fairies.domain.HashCode160;
+import org.squirrelnest.fairies.file.RandomAccessService;
 import org.squirrelnest.fairies.local.domain.FileMetadata;
 import org.squirrelnest.fairies.local.service.LocalFileInfoService;
 import org.squirrelnest.fairies.service.ConfigReadService;
@@ -10,6 +11,8 @@ import org.squirrelnest.fairies.share.procedure.Download;
 import org.squirrelnest.fairies.share.procedure.ProcedureFactory;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,20 +30,25 @@ public class FileDownloadService {
     @Resource
     private LocalFileInfoService fileInfoService;
 
+    @Resource
+    private RandomAccessService ioService;
+
     //与本地记录中的文件相关联的下载过程，停止下载时从中删除。
     private Map<FileMetadata, Download> downloading = new HashMap<>(16);
 
-    public List<FileMetadata> getCurrentDownloadFileInfo() {
+    public List<FileMetadata> getCurrentLocalFileInfo() {
         return fileInfoService.getCurrentFileInfo();
     }
 
-    public boolean addLocalFileInfo(FileMetadata fileMetadata) {
+    public boolean addLocalFileInfo(FileMetadata fileMetadata, Integer fileSize) {
         HashCode160 id = fileMetadata.getId();
         if (!fileInfoService.fileExist(id)) {
             return false;
         }
         fileInfoService.putFileData(fileMetadata.getId(), fileMetadata);
-        return true;
+        File file = new File(fileMetadata.getPath());
+
+        return ioService.createFixedSizeFileIfNotExist(file, fileSize);
     }
 
     public boolean deleteLocalFileInfo(HashCode160 id) {
