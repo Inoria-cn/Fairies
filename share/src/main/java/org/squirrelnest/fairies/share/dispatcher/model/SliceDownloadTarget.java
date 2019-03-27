@@ -9,15 +9,13 @@ import org.squirrelnest.fairies.domain.Record;
 public class SliceDownloadTarget {
 
     private Record targetSliceHolder;
-    private HashCode160 targetFileId;
     private Integer targetSliceIndex;
 
     public SliceDownloadTarget() {
     }
 
-    public SliceDownloadTarget(Record targetSliceHolder, HashCode160 targetFileId, Integer targetSliceIndex) {
+    public SliceDownloadTarget(Record targetSliceHolder, Integer targetSliceIndex) {
         this.targetSliceHolder = targetSliceHolder;
-        this.targetFileId = targetFileId;
         this.targetSliceIndex = targetSliceIndex;
     }
 
@@ -27,14 +25,6 @@ public class SliceDownloadTarget {
 
     public void setTargetSliceHolder(Record targetSliceHolder) {
         this.targetSliceHolder = targetSliceHolder;
-    }
-
-    public HashCode160 getTargetFileId() {
-        return targetFileId;
-    }
-
-    public void setTargetFileId(HashCode160 targetFileId) {
-        this.targetFileId = targetFileId;
     }
 
     public Integer getTargetSliceIndex() {

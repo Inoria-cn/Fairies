@@ -35,6 +35,9 @@ public class ConfigReadService {
     @Value("${fairies.download.maxRetryTimes}")
     private Integer downloadMaxRetryTimes;
 
+    @Value("${fairies.download.bufferSize}")
+    private Integer outputMaxCacheSize;
+
 
     public Long getDHTKVValueExpireTime() {
         return dhtKVValueExpireTime;
@@ -66,5 +69,9 @@ public class ConfigReadService {
 
     public Integer getDownloadMaxRetryTimes() {
         return downloadMaxRetryTimes;
+    }
+
+    public Integer getOutputMaxCacheSize() {
+        return outputMaxCacheSize;
     }
 }

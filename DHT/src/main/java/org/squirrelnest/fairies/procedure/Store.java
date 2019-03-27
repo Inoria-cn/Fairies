@@ -32,7 +32,7 @@ public class Store extends AbstractProcedure<Map<HashCode160, Boolean>> {
     private final HashCode160 keyId;
     private final String keyword;
 
-    public Store(int k, int alpha, int requestTimeoutMs, KVValueTypeEnum typeEnum,
+    Store(int k, int alpha, int requestTimeoutMs, KVValueTypeEnum typeEnum,
                  List<Record> targets, Map<HashCode160, Long> expireTimeMap, Object data, HashCode160 keyId, String keyword,
                  RouterTable routerTable, RequestSendService sendService) {
         super(null, k, alpha, requestTimeoutMs, routerTable, sendService);

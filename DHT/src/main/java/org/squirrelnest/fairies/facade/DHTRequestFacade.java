@@ -11,7 +11,9 @@ import org.squirrelnest.fairies.kvpairs.file.model.FileValue;
 import org.squirrelnest.fairies.kvpairs.keyword.KeywordIndexContainer;
 import org.squirrelnest.fairies.kvpairs.keyword.model.File;
 import org.squirrelnest.fairies.kvpairs.keyword.model.KeywordValue;
+import org.squirrelnest.fairies.procedure.FindNode;
 import org.squirrelnest.fairies.procedure.FindValue;
+import org.squirrelnest.fairies.procedure.ProcedureFactory;
 import org.squirrelnest.fairies.procedure.Store;
 import org.squirrelnest.fairies.router.RouterTable;
 import org.squirrelnest.fairies.service.ConfigReadService;
@@ -36,13 +38,7 @@ public class DHTRequestFacade {
     private ConfigReadService configReadService;
 
     @Resource
-    private RouterTable routerTable;
-
-    @Resource
     private KeywordIndexContainer keywordIndexContainer;
-
-    @Resource
-    private RequestSendService requestSendService;
 
     @Resource
     private GlobalThreadService globalThreadService;
@@ -57,9 +53,7 @@ public class DHTRequestFacade {
     @SuppressWarnings("unchecked")
     public List<File> getFilesByKeyword(String keyword) {
         HashCode160 wordHash = HashCode160.newInstance(keyword);
-        FindValue findValue = new FindValue(wordHash, configReadService.getDHTParamK()
-                , configReadService.getDHTParamAlpha(), configReadService.getDHTRequestTimeout(),
-                KVValueTypeEnum.KEYWORD, routerTable, requestSendService);
+        FindValue findValue = ProcedureFactory.procedureFindValue(wordHash, KVValueTypeEnum.KEYWORD);
         findValue.execute();
         FindValueResult result = findValue.getTargetTypeResult(FindValueResult.class);
         if(!result.getValueFound()) {
@@ -70,9 +64,8 @@ public class DHTRequestFacade {
         if(CollectionUtils.isNotEmpty(cacheRecords)) {
             Map<HashCode160, Long> expireTimeMap = keywordIndexContainer.getExpireTimeMap(wordHash, cacheRecords);
             globalThreadService.makeItRun(() -> {
-                Store cacheStore = new Store(configReadService.getDHTParamK(), configReadService.getDHTParamAlpha(),
-                        configReadService.getDHTRequestTimeout(), KVValueTypeEnum.KEYWORD, cacheRecords,
-                        expireTimeMap, value, wordHash, keyword, routerTable, requestSendService);
+                Store cacheStore = ProcedureFactory.procedureStoreValue(KVValueTypeEnum.KEYWORD,
+                        cacheRecords, expireTimeMap, value, wordHash);
                 cacheStore.execute();
             });
         }
@@ -82,8 +75,7 @@ public class DHTRequestFacade {
 
     @SuppressWarnings("unchecked")
     public FileValue getFileInfoById(HashCode160 fileId, List<Record> nearestNodesContainer) {
-        FindValue findValue = new FindValue(fileId, configReadService.getDHTParamK(), configReadService.getDHTParamAlpha(),
-                configReadService.getDHTRequestTimeout(), KVValueTypeEnum.FILE, routerTable, requestSendService);
+        FindValue findValue = ProcedureFactory.procedureFindValue(fileId, KVValueTypeEnum.FILE);
         FindValueResult result = findValue.execute();
         if (nearestNodesContainer != null) {
             nearestNodesContainer.addAll(result.getNearerNodes());
@@ -100,10 +92,35 @@ public class DHTRequestFacade {
             FileValue newValue = new FileValue(oldValue);
             newValue.setHolders(newHolders);
             newValue.setExpireTimestamp(System.currentTimeMillis() + configReadService.getDHTKVValueExpireTime());
-            Store fileValueUpdate = new Store(configReadService.getDHTParamK(), configReadService.getDHTParamAlpha(),
-                    configReadService.getDHTRequestTimeout(), KVValueTypeEnum.FILE, targetNodes,
-                    null, newValue, oldValue.getId(), null, routerTable, requestSendService);
+            Store fileValueUpdate = ProcedureFactory.procedureStoreValue(
+                    KVValueTypeEnum.FILE, targetNodes, null, newValue, oldValue.getId());
             fileValueUpdate.execute();
+        });
+    }
+
+    public void publishFileInfo(HashCode160 fileId, FileValue fileValue, String author, Long fileLastModifiedTime) {
+        List<String> keywords = fileValue.getKeywords();
+        for (String keyword : keywords) {
+            globalThreadService.makeItRun(() -> {
+                HashCode160 id = HashCode160.newInstance(keyword);
+                FindNode findNode = ProcedureFactory.procedureFindNode(id);
+                List<Record> targets = findNode.execute();
+                File keywordFile = new File();
+                keywordFile.setLastUpdateTime(fileLastModifiedTime);
+                keywordFile.setName(fileValue.getName());
+                keywordFile.setExpireTime(fileValue.getExpireTimestamp());
+                keywordFile.setAuthor(author);
+                keywordFile.setId(id);
+                Store storeKeywordFile = ProcedureFactory.procedureStoreKeywordFile(targets, keywordFile, id, keyword);
+                storeKeywordFile.execute();
+            });
+        }
+        globalThreadService.makeItRun(() -> {
+            FindNode findNode = ProcedureFactory.procedureFindNode(fileId);
+            List<Record> storeTargets = findNode.execute();
+            Store storeFileValue = ProcedureFactory.procedureStoreValue(
+                    KVValueTypeEnum.FILE, storeTargets, null, fileValue, fileId);
+            storeFileValue.execute();
         });
     }
 }

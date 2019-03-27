@@ -19,6 +19,10 @@ public enum SliceStateEnum {
      */
     LACK_AND_NOT_FOUND,
     /**
+     * 分片部分拥有
+     */
+    PARTLY,
+    /**
      * 分片已拥有
      */
     HAVING;

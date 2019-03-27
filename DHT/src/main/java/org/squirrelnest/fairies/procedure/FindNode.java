@@ -31,7 +31,7 @@ public class FindNode extends AbstractProcedure<List<Record>> {
 
     private int lastMinDistance;
 
-    public FindNode(HashCode160 localId, HashCode160 targetId, int k, int alpha, int requestTimeoutMs,
+    FindNode(HashCode160 localId, HashCode160 targetId, int k, int alpha, int requestTimeoutMs,
                     RouterTable routerTable, RequestSendService sendService) {
         super(targetId, k, alpha, requestTimeoutMs, routerTable, sendService);
         this.localId = localId;

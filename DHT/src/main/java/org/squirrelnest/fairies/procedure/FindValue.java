@@ -38,7 +38,7 @@ public class FindValue extends AbstractProcedure<FindValueResult> {
 
     private int lastMinDistance;
 
-    public FindValue(HashCode160 targetId,
+    FindValue(HashCode160 targetId,
                      int k, int alpha, int requestTimeoutMs, KVValueTypeEnum typeEnum,
                      RouterTable routerTable, RequestSendService sendService) {
         super(targetId, k, alpha, requestTimeoutMs, routerTable, sendService);

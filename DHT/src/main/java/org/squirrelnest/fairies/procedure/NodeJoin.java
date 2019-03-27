@@ -33,20 +33,19 @@ public class NodeJoin extends AbstractProcedure {
     private final KeywordIndexContainer keywordContainer;
     private final FileIndexContainer fileContainer;
     private final ExecutorService threadPool;
-    private final int maxRequestNumber;
+    private final int maxRequestNumber = 50;
     private int requestCounter = 0;
 
     private final Record startNode;
     private Set<Decorator<Record>> proceedNodes = new HashSet<>(16);
 
-    public NodeJoin(Record startNode, int k, int alpha, int requestTimeoutMs, int maxRequestNumber,
+    NodeJoin(Record startNode, int k, int alpha, int requestTimeoutMs,
                     RouterTable routerTable, RequestSendService sendService,
                     FileIndexContainer fileIndexContainer, KeywordIndexContainer keywordIndexContainer) {
         super(null, k, alpha, requestTimeoutMs, routerTable, sendService);
         this.keywordContainer = keywordIndexContainer;
         this.fileContainer = fileIndexContainer;
         this.startNode = startNode;
-        this.maxRequestNumber = maxRequestNumber;
 
         this.threadPool = new ThreadPoolExecutor(this.alpha, this.alpha * 4,
                 3, TimeUnit.SECONDS, new LinkedBlockingQueue<>());

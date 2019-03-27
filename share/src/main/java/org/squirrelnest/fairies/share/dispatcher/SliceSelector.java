@@ -1,12 +1,17 @@
 package org.squirrelnest.fairies.share.dispatcher;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.squirrelnest.fairies.decorator.Decorator;
 import org.squirrelnest.fairies.domain.Record;
 import org.squirrelnest.fairies.local.domain.SliceDetail;
 import org.squirrelnest.fairies.local.enumeration.SliceStateEnum;
 import org.squirrelnest.fairies.share.dto.SliceBitmap;
 import org.squirrelnest.fairies.share.dispatcher.model.SliceDownloadTarget;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,10 +43,8 @@ public class SliceSelector {
         return lastDownloadTime;
     }
 
-    public synchronized SliceStateEnum beginDownloadSlice(int index) {
-        SliceStateEnum oldState = mySlices.getSliceState(index);
+    public synchronized void beginDownloadSlice(int index) {
         mySlices.setSliceState(index, SliceStateEnum.DOWNLOADING);
-        return oldState;
     }
 
     public synchronized void downloadFailed(int index) {
@@ -78,13 +81,118 @@ public class SliceSelector {
      * 刚开始下载时（拥有分片较少时），优先下载期望下载速度最快的分片
      */
     private SliceDownloadTarget expectSpeedFastest() {
-
+        SliceDownloadTarget result = new SliceDownloadTarget();
+        Record record = findDownloadSpeedFastRecord();
+        if (record == null) {
+            record = new ArrayList<>(holderLatestDownloadTime.keySet()).get(0);
+        }
+        Integer index = holderSlices.get(record).findFirstExpectSliceIndex(mySlices.generateBitmap());
+        result.setTargetSliceHolder(record);
+        result.setTargetSliceIndex(index);
+        return result;
     }
+
 
     /**
      * 持有一定分片之后, 优先下载所有持有者节点中最少的分片
      */
     private SliceDownloadTarget expectHoldRateLeast() {
+        int[] indexRankByHoldRate = calculateHoldRateIndexRank();
+        for (int index : indexRankByHoldRate) {
+            if (mySlices.getSliceState(index).haveSlice()) {
+                continue;
+            }
+            Record targetHolder = findBestHolderForSlice(index);
+            if (targetHolder == null) {
+                continue;
+            }
 
+            return new SliceDownloadTarget(targetHolder, index);
+        }
+        return null;
+    }
+
+    private Record findBestHolderForSlice(int sliceIndex) {
+        List<Record> candidates = new ArrayList<>(16);
+        for (Map.Entry<Record, SliceBitmap> entry : holderSlices.entrySet()) {
+            if (entry.getValue().valueAt(sliceIndex)) {
+                candidates.add(entry.getKey());
+            }
+        }
+        if (CollectionUtils.isEmpty(candidates)) {
+            return null;
+        }
+        candidates.sort((c1, c2) -> {
+            long time1 = holderLatestDownloadTime.getOrDefault(c1, -1L);
+            long time2 = holderLatestDownloadTime.getOrDefault(c2, -1L);
+            if (time1 <= 0 && time2 <= 0) {
+                return 0;
+            }
+            if (time1 <= 0) {
+                return 1;
+            } else if(time2 <= 0) {
+                return -1;
+            }
+            return (int)(time1 - time2);
+        });
+        return candidates.get(0);
+    }
+
+    private Record findDownloadSpeedFastRecord() {
+        if (MapUtils.isEmpty(holderLatestDownloadTime)) {
+            return null;
+        }
+
+        Record result = new ArrayList<>(holderLatestDownloadTime.keySet()).get(0);
+        Long minTime = holderLatestDownloadTime.get(result);
+        for (Map.Entry<Record, Long> entry : holderLatestDownloadTime.entrySet()) {
+            if (minTime <= 0) {
+                result = entry.getKey();
+                minTime = entry.getValue();
+                continue;
+            }
+            if (entry.getValue() > 0 && entry.getValue() < minTime) {
+                result = entry.getKey();
+                minTime = entry.getValue();
+            }
+        }
+        if (minTime <= 0) {
+            return null;
+        }
+        return result;
+    }
+
+    private int[] calculateHoldRateIndexRank() {
+        int sliceSize = mySlices.getSliceSize();
+        Double[] holdRates = new Double[sliceSize];
+        SliceBitmap[] holderStates = new SliceBitmap[holderSlices.entrySet().size()];
+        int index = 0;
+        for (Map.Entry<Record, SliceBitmap> entry : holderSlices.entrySet()) {
+            holderStates[index++] = entry.getValue();
+        }
+        for(int i = 0, holderSize = holderStates.length; i < sliceSize; i++) {
+            int havingCount = 0;
+            for (SliceBitmap bitmap : holderStates) {
+                if (bitmap.valueAt(i)) {
+                    havingCount++;
+                }
+            }
+            holdRates[i] = havingCount * 1.0 / holderSize;
+        }
+
+        List<Decorator<Double>> sorted = new ArrayList<>(sliceSize);
+        for (int i = 0; i < sliceSize; i++) {
+            sorted.get(i).setData(holdRates[i]);
+            sorted.get(i).put("index", i);
+        }
+
+        sorted.sort((decorator1, decorator2) -> decorator1.getData().compareTo(decorator2.getData()));
+        int[] indexRank = new int[sliceSize];
+        index = 0;
+        for(Decorator<Double> decorator : sorted) {
+            indexRank[index++] = (int)decorator.get("index");
+        }
+
+        return indexRank;
     }
 }

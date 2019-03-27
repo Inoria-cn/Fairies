@@ -1,12 +1,14 @@
 package org.squirrelnest.fairies.local.domain;
 
 import org.squirrelnest.fairies.domain.Record;
+import org.squirrelnest.fairies.kvpairs.file.model.FileValue;
 import org.squirrelnest.fairies.local.enumeration.FileStateEnum;
 import org.squirrelnest.fairies.share.dto.SliceBitmap;
 import org.squirrelnest.fairies.common.exception.SliceSizeInvalidException;
 import org.squirrelnest.fairies.common.utils.MathUtils;
 import org.squirrelnest.fairies.domain.HashCode160;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -135,6 +137,14 @@ public class FileMetadata {
 
     public SliceBitmap getSliceBitmap() {
         return this.slices.generateBitmap();
+    }
+
+    public FileValue prepareFileValueForDHT(Integer fileSize, Record localNode, Long expireTime, List<String> keywords) {
+        FileValue fileValue = new FileValue(getName(), getId(), fileSize, sliceSize);
+        fileValue.setKeywords(keywords);
+        fileValue.setHolders(Arrays.asList(localNode));
+        fileValue.setExpireTimestamp(expireTime);
+        return fileValue;
     }
 
     @Override

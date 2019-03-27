@@ -18,6 +18,14 @@ public class SliceBitmap {
         this.bitLength = length;
     }
 
+    public SliceBitmap(int length) {
+        this.bits = new byte[(length - 1) / 4 + 1];
+        this.bitLength = length;
+        for (int i = 0 ; i < bits.length; i++) {
+            bits[i] = 0;
+        }
+    }
+
     public Boolean valueAt(int index) {
         if (index > bitLength) {
             throw new BitmapOutOfIndexException();
@@ -36,6 +44,23 @@ public class SliceBitmap {
         bits[elementIndex] = BinaryUtils.setDigit(bits[elementIndex], bitIndex, newValue);
     }
 
+    public Integer findFirstExpectSliceIndex(SliceBitmap having) {
+        for (int i = 0; i < bitLength; i++) {
+            if (this.valueAt(i) && !having.valueAt(i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public boolean hasAllParts() {
+        for (int i = 0; i < bitLength; i++) {
+            if (!valueAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /*
      * Getters and setters below is only for serialize.

@@ -3,6 +3,7 @@ package org.squirrelnest.fairies.share.procedure;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.squirrelnest.fairies.decorator.Decorator;
+import org.squirrelnest.fairies.file.RandomAccessService;
 import org.squirrelnest.fairies.kvpairs.file.model.FileValue;
 import org.squirrelnest.fairies.local.domain.FileMetadata;
 import org.squirrelnest.fairies.service.GlobalThreadService;
@@ -57,7 +58,7 @@ public class Download {
 
     private List<Record> fileDHTDataHolderContainer = new ArrayList<>(16);
 
-    Download(RequestService requestService, FileMetadata fileMetadata,
+    Download(RequestService requestService, FileMetadata fileMetadata, RandomAccessService saveService,
              DHTRequestFacade dhtRequestFacade, TimeoutTaskService taskService,
              int multiThreadDegree, long requestTimeoutMillis, int maxPieceFailTimes, int pieceDownloadTimeoutMillis) {
         this.requestService = requestService;
@@ -66,7 +67,7 @@ public class Download {
         this.threadPool = new ThreadPoolExecutor(multiThreadDegree, 4 * multiThreadDegree,
                 3, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
 
-        this.dispatcher = new ThreadDownloadDispatcher(fileMetadata, requestService, taskService,
+        this.dispatcher = new ThreadDownloadDispatcher(fileMetadata, requestService, taskService, saveService,
                 multiThreadDegree, maxPieceFailTimes, pieceDownloadTimeoutMillis);
         this.requestTimeout = requestTimeoutMillis;
     }
@@ -86,6 +87,10 @@ public class Download {
 
     public DownloadStateEnum getDownloadState() {
         return this.downloadState;
+    }
+
+    public boolean notFinished() {
+        return !DownloadStateEnum.FINISHED.equals(this.downloadState);
     }
 
     public void stop() {

@@ -47,6 +47,13 @@ public class FileValue {
      */
     private Long expireTimestamp;
 
+    public FileValue(String name, HashCode160 id, Integer size, Integer sliceSize) {
+        this.name = name;
+        this.id = id;
+        this.size = size;
+        this.sliceSize = sliceSize;
+    }
+
     public FileValue(FileValue that) {
         setId(that.getId());
         setName(that.getName());

@@ -11,7 +11,9 @@ import org.squirrelnest.fairies.storage.enumeration.LocalStorageTypeEnum;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,6 +49,19 @@ public class LocalFileInfoService {
 
     public FileMetadata getFileData(HashCode160 id) {
         return data.get(id);
+    }
+
+    public void putFileData(HashCode160 id, FileMetadata fileMetadata) {
+        data.put(id, fileMetadata);
+    }
+
+    public List<FileMetadata> getCurrentFileInfo() {
+        return new ArrayList<>(data.values());
+    }
+
+    public boolean deleteFileInfo(HashCode160 id) {
+
+        return data.remove(id) != null;
     }
 
 

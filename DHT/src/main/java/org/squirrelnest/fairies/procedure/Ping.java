@@ -27,7 +27,7 @@ public class Ping extends AbstractProcedure<Map<HashCode160, Boolean>> {
     private final ExecutorService threadPool;
     private final List<Record> targetNodes;
 
-    public Ping(int k, int alpha, int requestTimeoutMs,
+    Ping(int k, int alpha, int requestTimeoutMs,
                 List<Record> targets, RouterTable routerTable, RequestSendService sendService) {
         super(null, k, alpha, requestTimeoutMs, routerTable, sendService);
         this.targetNodes = targets;

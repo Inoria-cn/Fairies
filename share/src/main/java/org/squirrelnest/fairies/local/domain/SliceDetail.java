@@ -4,12 +4,16 @@ import org.squirrelnest.fairies.local.enumeration.SliceStateEnum;
 import org.squirrelnest.fairies.share.dto.SliceBitmap;
 import org.squirrelnest.fairies.utils.BinaryUtils;
 
+import static org.squirrelnest.fairies.service.ConfigReadService.PIECE_SIZE;
+
 /**
  * Created by Inoria on 2019/3/22.
  */
 public class SliceDetail {
 
     private SliceStateEnum[] sliceStates;
+
+    private SliceBitmap[] pieceBitmaps;
 
     private final Integer sliceCount;
 
@@ -18,6 +22,10 @@ public class SliceDetail {
     public SliceDetail(Integer sliceCount, Integer sliceSize) {
         this.sliceCount = sliceCount;
         this.sliceSize = sliceSize;
+        pieceBitmaps = new SliceBitmap[sliceCount];
+        for (int i = 0; i < pieceBitmaps.length; i++) {
+            pieceBitmaps[i] = null;
+        }
     }
 
     public SliceDetail(SliceStateEnum[] sliceStates, Integer sliceCount, Integer sliceSize) {
@@ -86,5 +94,32 @@ public class SliceDetail {
             sliceExistCount += sliceStateCode.haveSlice() ? 1 : 0;
         }
         return 1.0 * sliceExistCount / sliceCount;
+    }
+
+    public boolean sliceHasAllPiece(int sliceIndex) {
+        SliceStateEnum state = sliceStates[sliceIndex];
+        if (SliceStateEnum.HAVING.equals(state)) {
+            return true;
+        }
+        if (SliceStateEnum.PARTLY.equals(state)) {
+            if (pieceBitmaps[sliceIndex] == null) {
+                return false;
+            }
+            if (pieceBitmaps[sliceIndex].hasAllParts()) {
+                sliceStates[sliceIndex] = SliceStateEnum.HAVING;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public synchronized void sliceSavePiece(int sliceIndex, int pieceIndex) {
+        SliceBitmap pieceBitmap = pieceBitmaps[sliceIndex];
+        if (pieceBitmap == null) {
+            pieceBitmaps[sliceIndex] = new SliceBitmap(sliceSize / PIECE_SIZE);
+            pieceBitmap = pieceBitmaps[sliceIndex];
+        }
+        pieceBitmap.makeValueAt(pieceIndex, true);
+        sliceStates[sliceIndex] = SliceStateEnum.PARTLY;
     }
 }

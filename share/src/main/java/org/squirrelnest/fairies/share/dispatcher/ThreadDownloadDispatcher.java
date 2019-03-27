@@ -2,6 +2,7 @@ package org.squirrelnest.fairies.share.dispatcher;
 
 import org.squirrelnest.fairies.domain.HashCode160;
 import org.squirrelnest.fairies.domain.Record;
+import org.squirrelnest.fairies.file.RandomAccessService;
 import org.squirrelnest.fairies.local.domain.FileMetadata;
 import org.squirrelnest.fairies.service.TimeoutTaskService;
 import org.squirrelnest.fairies.share.dispatcher.model.SliceDownloadTarget;
@@ -34,6 +35,8 @@ public class ThreadDownloadDispatcher {
 
     private final TimeoutTaskService timeoutTaskService;
 
+    private final RandomAccessService saveService;
+
     private final HashCode160 fileId;
 
     private final Integer sliceSize;
@@ -48,10 +51,12 @@ public class ThreadDownloadDispatcher {
 
     private boolean running = true;
 
-    public ThreadDownloadDispatcher(FileMetadata fileMetadata, RequestService requestService, TimeoutTaskService timeoutTaskService,
+    public ThreadDownloadDispatcher(FileMetadata fileMetadata, RequestService requestService,
+                                    TimeoutTaskService timeoutTaskService, RandomAccessService saveService,
                                     int multiThreadCount, int maxPieceFail, long pieceDownloadTimeoutMillis) {
         this.requestService = requestService;
         this.timeoutTaskService = timeoutTaskService;
+        this.saveService = saveService;
 
         this.fileId = fileMetadata.getId();
         this.sliceSize = fileMetadata.getSliceSize();
